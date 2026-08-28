@@ -5,9 +5,16 @@ Wallbox pulse recorder/decoder and direct Now Playing API client.
 
 ## Current status
 
-The current firmware establishes a Wi-Fi connection and reports the Pico's IP
-address. Pulse capture, Wallbox-code decoding, and the authenticated request to
-the Now Playing API will be added as the electronics are commissioned.
+`main.py` now implements three commissioning modes:
+
+- `RECORD` captures both GPIO edges, their timestamps, and sampled HIGH/LOW
+  states over USB/serial only. It intentionally applies no minimum-gap filter.
+- `DRY_RUN` validates and decodes a capture, then calls the Now Playing API with
+  `dryRun: true` without changing the queue.
+- `LIVE` validates and decodes a capture, then appends the selected track.
+
+The Wallbox legend and timing thresholds remain provisional until measurements
+from the actual serial-25050 Wallbox confirm them.
 
 ## Hardware and service
 
@@ -23,4 +30,8 @@ track to MPD without starting playback.
 ## Local setup
 
 Copy `secrets.example.py` to `secrets.py` and fill in the Wi-Fi credentials.
-`secrets.py` is ignored by Git and must not be committed.
+Also fill in `TRACK_KEY` with the existing Now Playing API key. `secrets.py` is
+ignored by Git and must not be committed.
+
+Start with `MODE = "RECORD"`. Once traces are understood, change to
+`DRY_RUN`, and use `LIVE` only after the number mapping has been verified.

@@ -56,7 +56,7 @@ queue integration.
 
 ## Pico 2W pulse-decoder program
 
-The Pico 2W is the real-time pulse recorder / decoder and direct Now Playing API client. The current device is reachable at DHCP address `10.0.0.118`; its firmware entry point is [`main.py`](../../main.py). The existing `main.py` establishes the Wi-Fi connection. GPIO capture, decoding, and the authenticated API request are the next software layers.
+The Pico 2W is the real-time pulse recorder / decoder and direct Now Playing API client. The current device is reachable at DHCP address `10.0.0.118`; its firmware entry point is [`main.py`](../../main.py). The project `main.py` implements GPIO capture, provisional decoding, and the authenticated API request. It imports Wi-Fi and HTTP support only for `DRY_RUN` and `LIVE`, so `RECORD` mode can operate as a serial-only instrument.
 
 The program should keep pulse timing and decoding on the Pico while the Now Playing API handles catalog lookup, authentication validation, queueing, and playback control:
 
@@ -116,8 +116,10 @@ During development, each completed attempt should log both raw evidence and the 
 }
 ```
 
-The first operational mode should be `RECORD`: capture and print raw pulse
-timing for known button presses without decoding or changing playback. After
+The first operational mode is `RECORD`: capture and print both GPIO edges,
+timestamps, and sampled HIGH/LOW states for known button presses without
+decoding or changing playback. RECORD intentionally applies no minimum-gap
+filter, so possible rectified AC/zero-crossing behavior remains visible. After
 the pulse legend and timing are
 verified, use `DRY RUN` so the Pico captures, decodes, converts to a playlist
 number, and submits `dryRun: true`. The endpoint resolves the selection against
@@ -181,6 +183,13 @@ keeps the catalog in moOde, allows tracks to be reordered without code changes,
 and avoids giving the input device direct MPD control. The current endpoint
 supports a numeric JSON body as well, but the object form shown above is the
 canonical wire format because it also supports `dryRun`.
+
+The firmware uses MicroPython's `urequests` and `ujson` modules, supplies the
+`X-Track-Key` from the untracked `secrets.py`, applies a socket timeout, retries
+one failed request after reconnecting Wi-Fi, and suppresses an identical
+selection received within a short configurable commissioning window. The GPIO
+interrupt is re-armed before decoding or networking so slow API operations do
+not unnecessarily block edge capture.
 
 ## Operational requirements
 
