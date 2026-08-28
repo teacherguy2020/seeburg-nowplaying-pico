@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Seeburg Wallbox — Components and Wiring</title>
+  <style>
+    :root { color-scheme: light dark; --bg:#f8fafc; --fg:#172033; --muted:#5b6475; --line:#475569; --wall:#fef3c7; --interface:#dcfce7; --logic:#dbeafe; --service:#ede9fe; --warn:#ffedd5; }
+    @media (prefers-color-scheme: dark) { :root { --bg:#0f172a; --fg:#e5e7eb; --muted:#a3adbd; --line:#cbd5e1; --wall:#713f12; --interface:#14532d; --logic:#1e3a8a; --service:#4c1d95; --warn:#7c2d12; } }
+    body { margin:0; background:var(--bg); color:var(--fg); font:15px/1.45 ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif; }
+    main { max-width:1400px; margin:24px auto; padding:0 18px; }
+    h1 { margin:0 0 6px; font-size:28px; } h2 { font-size:19px; margin:22px 0 8px; }
+    p { max-width:1000px; } .muted { color:var(--muted); }
+    svg { display:block; width:100%; height:auto; background:var(--bg); }
+    .zone { stroke:var(--line); stroke-width:1.5; stroke-dasharray:8 6; opacity:.7; }
+    .box { stroke:var(--line); stroke-width:1.7; }
+    .wall { fill:var(--wall); } .interface { fill:var(--interface); } .logic { fill:var(--logic); } .service { fill:var(--service); } .warn { fill:var(--warn); }
+    .wire { fill:none; stroke:var(--line); stroke-width:3; } .signal { fill:none; stroke:#047857; stroke-width:3; } .power { fill:none; stroke:#2563eb; stroke-width:3; } .network { fill:none; stroke:#7c3aed; stroke-width:3; stroke-dasharray:9 6; }
+    text { fill:var(--fg); font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif; } .title { font-size:21px; font-weight:700; } .label { font-size:17px; font-weight:650; } .small { font-size:13px; fill:var(--muted); } .tiny { font-size:12px; fill:var(--muted); }
+    .port { fill:var(--bg); stroke:var(--line); stroke-width:1.5; } .chip { fill:var(--bg); stroke:#047857; stroke-width:1.5; }
+  </style>
+</head>
+<body><main>
+  <h1>Seeburg 3W-1 interface — components and wiring</h1>
+  <p class="muted">Serial 25050, later three-blade variant. Current first-pass design: a parallel two-wire tap at the Data Sync Wallbox terminals feeds one DB107/PC817 isolated sensing channel. The PC817 module's output side is powered from the Pico's 3.3 V supply. Values remain provisional until measured on the actual unit.</p>
+  <svg viewBox="0 0 1400 800" role="img" aria-label="Wiring diagram showing two wires from the Seeburg Wallbox and Data Sync tap entering a DB107 bridge, two 3.3 kilohm resistors, a PC817 optocoupler, then a 10 kilohm pull-up and Pico GPIO on a logic-only breadboard, followed by the Now Playing API and MPD">
+    <defs>
+      <marker id="arrow-dark" markerWidth="11" markerHeight="11" refX="9" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10 Z" fill="#475569"/></marker>
+      <marker id="arrow-green" markerWidth="11" markerHeight="11" refX="9" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10 Z" fill="#047857"/></marker>
+      <marker id="arrow-blue" markerWidth="11" markerHeight="11" refX="9" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10 Z" fill="#2563eb"/></marker>
+      <marker id="arrow-purple" markerWidth="11" markerHeight="11" refX="9" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10 Z" fill="#7c3aed"/></marker>
+    </defs>
+
+    <!-- Safety / functional zones -->
+    <rect class="zone" x="20" y="30" width="350" height="650" rx="16"/>
+    <rect class="zone" x="395" y="30" width="355" height="650" rx="16"/>
+    <rect class="zone" x="775" y="30" width="285" height="650" rx="16"/>
+    <rect class="zone" x="1085" y="30" width="295" height="650" rx="16"/>
+    <text class="small" x="40" y="58">WALLBOX / 25 VAC SIDE</text>
+    <text class="small" x="415" y="58">ISOLATED INPUT ENCLOSURE</text>
+    <text class="small" x="795" y="58">LOW-VOLTAGE PROTOTYPE</text>
+    <text class="small" x="1105" y="58">NETWORK / PLAYBACK</text>
+
+    <!-- connectors first -->
+    <path class="wire" marker-end="url(#arrow-dark)" d="M305 260 H430"/>
+    <path class="wire" marker-end="url(#arrow-dark)" d="M305 340 H430"/>
+    <path class="signal" marker-end="url(#arrow-green)" d="M690 300 H815"/>
+    <path class="power" marker-end="url(#arrow-blue)" d="M930 585 V515 H905 V455"/>
+    <path class="power" marker-end="url(#arrow-blue)" d="M930 585 V515 H1225 V455"/>
+    <path class="network" marker-end="url(#arrow-purple)" d="M975 285 H1115"/>
+    <path class="network" marker-end="url(#arrow-purple)" d="M1270 350 V420"/>
+
+    <!-- Wallbox -->
+    <rect class="box wall" x="50" y="125" width="255" height="360" rx="14"/>
+    <text class="title" x="76" y="170">Seeburg 3W-1</text>
+    <text class="label" x="76" y="198">Serial 25050</text>
+    <text class="small" x="76" y="238">Motor-driven selector</text>
+    <text class="small" x="76" y="262">and contact assembly</text>
+    <rect class="port" x="76" y="300" width="205" height="118" rx="8"/>
+    <text class="label" x="92" y="326">Data Sync tap</text>
+    <circle cx="104" cy="356" r="6" fill="#047857"/><text class="small" x="120" y="361">SIGNAL — pulse input</text>
+    <circle cx="104" cy="382" r="6" fill="#64748b"/><text class="small" x="120" y="387">COMMON — return</text>
+    <text class="tiny" x="76" y="430">Parallel tap at the two</text><text class="tiny" x="76" y="448">terminals used by Data Sync.</text>
+    <text class="tiny" x="76" y="474">Timed pulse groups, not “B3”.</text>
+    <circle class="port" cx="305" cy="260" r="6"/><circle class="port" cx="305" cy="340" r="6"/>
+
+    <!-- Isolation enclosure -->
+    <rect class="box interface" x="430" y="125" width="260" height="360" rx="14"/>
+    <text class="title" x="454" y="170">Input interface</text>
+    <rect class="port" x="454" y="198" width="210" height="54" rx="8"/>
+    <text class="label" x="472" y="222">TB1 — removable</text><text class="small" x="472" y="242">3-position terminal block</text>
+    <rect class="port" x="454" y="280" width="210" height="150" rx="8"/>
+    <text class="label" x="472" y="306">One sensing channel</text>
+    <text class="small" x="472" y="334">DB107: Wallbox → `~` `~`</text>
+    <text class="small" x="472" y="358">`+` → 3.3 kΩ → 3.3 kΩ</text>
+    <text class="small" x="472" y="382">→ PC817 LED → `−`</text>
+    <text class="small" x="472" y="406">PC817 is isolation barrier</text>
+    <text class="tiny" x="454" y="458">Covered Wallbox-side section;</text><text class="tiny" x="454" y="476">no shared Pico ground.</text>
+    <circle class="chip" cx="690" cy="300" r="6"/>
+
+    <!-- Breadboard / Pico -->
+    <rect class="box logic" x="815" y="125" width="160" height="360" rx="14"/>
+    <text class="title" x="835" y="170">Breadboard</text>
+    <text class="small" x="835" y="194">logic side only</text>
+    <rect class="port" x="835" y="225" width="120" height="145" rx="8"/>
+    <text class="label" x="850" y="254">Pico 2 W</text>
+    <text class="small" x="850" y="286">Module VCC → Pico pin 36</text><text class="small" x="850" y="310">Module GND → Pico GND</text><text class="small" x="850" y="334">Module OUT → GPIO</text>
+    <text class="small" x="850" y="358">capture and decode</text>
+    <text class="tiny" x="835" y="408">Logic-side pull-up, LED,</text><text class="tiny" x="835" y="426">optional 100 nF filter.</text>
+    <text class="tiny" x="835" y="458">No 25 VAC on breadboard.</text>
+    <circle class="chip" cx="815" cy="300" r="6"/>
+
+    <!-- Now Playing API and MPD service -->
+    <rect class="box service" x="1115" y="125" width="155" height="225" rx="14"/>
+    <text class="title" x="1135" y="170">Now Playing API</text>
+    <text class="small" x="1135" y="210">10.0.0.4:3101</text><text class="small" x="1135" y="236">playlist lookup</text><text class="small" x="1135" y="262">X-Track-Key auth</text><text class="small" x="1135" y="288">selection route</text>
+    <text class="tiny" x="1135" y="324">direct Wi-Fi request</text>
+    <rect class="box service" x="1115" y="420" width="155" height="150" rx="14"/>
+    <text class="title" x="1135" y="465">moOde / MPD</text><text class="small" x="1135" y="505">resolve file</text><text class="small" x="1135" y="531">append track</text><text class="small" x="1135" y="557">to queue</text>
+
+    <!-- Power -->
+    <rect class="box logic" x="805" y="585" width="250" height="65" rx="12"/>
+    <text class="label" x="825" y="613">5 V USB supply</text><text class="small" x="825" y="636">powers Pico/interface</text>
+
+    <!-- labels on wires -->
+    <text class="small" x="333" y="251">WB_SIGNAL</text><text class="small" x="333" y="331">WB_COMMON</text>
+    <text class="small" x="706" y="290">isolated GPIO input</text>
+    <text class="small" x="990" y="275">Wi-Fi: playlist number</text>
+
+    <!-- legend and caution -->
+    <rect class="box warn" x="50" y="555" width="700" height="95" rx="12"/>
+    <text class="label" x="72" y="585">Safety boundary</text>
+    <text class="small" x="72" y="610">The dashed zone boundary separates the Wallbox circuit from low-voltage logic.</text>
+    <text class="small" x="72" y="632">Do not connect DB107 `+`/`−` to Pico ground. Confirm module output voltage, Wallbox waveform, and resistor values first.</text>
+    <line x1="810" y1="710" x2="850" y2="710" class="wire"/><text class="small" x="860" y="715">Wallbox wiring / enclosure</text>
+    <line x1="1015" y1="710" x2="1055" y2="710" class="signal"/><text class="small" x="1065" y="715">isolated signal</text>
+    <line x1="1170" y1="710" x2="1210" y2="710" class="network"/><text class="small" x="1220" y="715">network event</text>
+  </svg>
+  <p><a href="/wiki/parts-list.html">Parts list</a> · <a href="/wiki/interface-schematic.html">Provisional schematic</a> · <a href="/wiki/index.html">Project index</a></p>
+</main></body></html>
+
