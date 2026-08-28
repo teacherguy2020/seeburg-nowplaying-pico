@@ -38,11 +38,18 @@ Allow a person to make a selection on the Wallbox—eventually represented as a 
 - [Open questions](open-questions.md)
 - [Build log](build-log.md)
 - [Parts list](parts-list.md)
-- [Interface schematic](interface-schematic.html)
-- [Components and wiring graphic](components-wiring.html)
+- [Interface schematic](interface-schematic.svg)
+- [Components and wiring graphic](components-wiring.svg)
 - [Step-by-step wiring procedure](wiring-build-procedure.md)
 - [Data Sync Wallbox to iPod adaptation](datasync-adaptation.md)
 - [Isolated input stage](isolated-input-stage.md)
+
+The diagrams are included as standalone SVG images so GitHub can render them
+directly:
+
+![Components and wiring diagram](components-wiring.svg)
+
+![Provisional interface schematic](interface-schematic.svg)
 
 ## Confirmed from the 3W-1 manual
 
@@ -70,4 +77,3 @@ The live integration endpoint is `POST /integrations/seeburg/selection` on the l
 Now Playing host at `10.0.0.4:3101`. It uses the saved `Seeburg Playlist` order as
 the catalog, appends the selected track without starting playback, and currently
 has 36 tracks available while the 100-song playlist is being assembled.
-

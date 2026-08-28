@@ -26,7 +26,7 @@ Seeburg Wallbox
   → Seeburg Playlist lookup and Now Playing append
 ```
 
-See the [photorealistic breadboard reference](components-wiring.html) and the [components and wiring flowchart](components-wiring.html) for the physical arrangement. The flowchart is conceptual; the steps below govern the actual build.
+See the [components and wiring diagram](components-wiring.svg) and the [provisional interface schematic](interface-schematic.svg) for the physical arrangement. The diagrams are conceptual; the steps below govern the actual build.
 
 ## Rules before wiring
 
@@ -138,8 +138,7 @@ The 3.3 kΩ resistors must be 3.3 kilohms (`3K3`), not 3.3 ohms. The values are 
 
 - [Hardware reverse engineering](hardware-reverse-engineering.md)
 - [Parts list](parts-list.md)
-- [Provisional interface schematic](interface-schematic.html)
-- [Components and wiring graphic](components-wiring.html)
+- [Provisional interface schematic](interface-schematic.svg)
+- [Components and wiring graphic](components-wiring.svg)
 - [Software integration](software-integration.md)
 - [Seeburg Wall-O-Matic Type 3W-1 Service Manual](/Users/brianwis/Public/3w1.pdf), pp. 2–11, Figures 2 and 15–17.
-

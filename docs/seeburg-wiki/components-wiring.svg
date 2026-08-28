@@ -1,29 +1,6 @@
-<!doctype html>
-<html lang="en">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Seeburg Wallbox — Components and Wiring</title>
-  <style>
-    :root { color-scheme: light dark; --bg:#f8fafc; --fg:#172033; --muted:#5b6475; --line:#475569; --wall:#fef3c7; --interface:#dcfce7; --logic:#dbeafe; --service:#ede9fe; --warn:#ffedd5; }
-    @media (prefers-color-scheme: dark) { :root { --bg:#0f172a; --fg:#e5e7eb; --muted:#a3adbd; --line:#cbd5e1; --wall:#713f12; --interface:#14532d; --logic:#1e3a8a; --service:#4c1d95; --warn:#7c2d12; } }
-    body { margin:0; background:var(--bg); color:var(--fg); font:15px/1.45 ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif; }
-    main { max-width:1400px; margin:24px auto; padding:0 18px; }
-    h1 { margin:0 0 6px; font-size:28px; } h2 { font-size:19px; margin:22px 0 8px; }
-    p { max-width:1000px; } .muted { color:var(--muted); }
-    svg { display:block; width:100%; height:auto; background:var(--bg); }
-    .zone { stroke:var(--line); stroke-width:1.5; stroke-dasharray:8 6; opacity:.7; }
-    .box { stroke:var(--line); stroke-width:1.7; }
-    .wall { fill:var(--wall); } .interface { fill:var(--interface); } .logic { fill:var(--logic); } .service { fill:var(--service); } .warn { fill:var(--warn); }
-    .wire { fill:none; stroke:var(--line); stroke-width:3; } .signal { fill:none; stroke:#047857; stroke-width:3; } .power { fill:none; stroke:#2563eb; stroke-width:3; } .network { fill:none; stroke:#7c3aed; stroke-width:3; stroke-dasharray:9 6; }
-    text { fill:var(--fg); font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif; } .title { font-size:21px; font-weight:700; } .label { font-size:17px; font-weight:650; } .small { font-size:13px; fill:var(--muted); } .tiny { font-size:12px; fill:var(--muted); }
-    .port { fill:var(--bg); stroke:var(--line); stroke-width:1.5; } .chip { fill:var(--bg); stroke:#047857; stroke-width:1.5; }
-  </style>
-</head>
-<body><main>
-  <h1>Seeburg 3W-1 interface — components and wiring</h1>
-  <p class="muted">Serial 25050, later three-blade variant. Current first-pass design: a parallel two-wire tap at the Data Sync Wallbox terminals feeds one DB107/PC817 isolated sensing channel. The PC817 module's output side is powered from the Pico's 3.3 V supply. Values remain provisional until measured on the actual unit.</p>
+<?xml version="1.0" encoding="UTF-8"?>
   <svg viewBox="0 0 1400 800" role="img" aria-label="Wiring diagram showing two wires from the Seeburg Wallbox and Data Sync tap entering a DB107 bridge, two 3.3 kilohm resistors, a PC817 optocoupler, then a 10 kilohm pull-up and Pico GPIO on a logic-only breadboard, followed by the Now Playing API and MPD">
+<style>:root{color-scheme:light dark;--bg:#f8fafc;--fg:#172033;--muted:#5b6475;--line:#475569;--wall:#fef3c7;--interface:#dcfce7;--logic:#dbeafe;--service:#ede9fe;--warn:#ffedd5}@media(prefers-color-scheme:dark){:root{--bg:#0f172a;--fg:#e5e7eb;--muted:#a3adbd;--line:#cbd5e1;--wall:#713f12;--interface:#14532d;--logic:#1e3a8a;--service:#4c1d95;--warn:#7c2d12}}text{font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;fill:var(--fg)}.title{font-size:21px;font-weight:700}.label{font-size:17px;font-weight:650}.small{font-size:13px;fill:var(--muted)}.tiny{font-size:12px;fill:var(--muted)}.zone{stroke:var(--line);stroke-width:1.5;stroke-dasharray:8 6;opacity:.7}.box{stroke:var(--line);stroke-width:1.7}.wall{fill:var(--wall)}.interface{fill:var(--interface)}.logic{fill:var(--logic)}.service{fill:var(--service)}.warn{fill:var(--warn)}.wire{fill:none;stroke:var(--line);stroke-width:3}.signal{fill:none;stroke:#047857;stroke-width:3}.power{fill:none;stroke:#2563eb;stroke-width:3}.network{fill:none;stroke:#7c3aed;stroke-width:3;stroke-dasharray:9 6}.port{fill:var(--bg);stroke:var(--line);stroke-width:1.5}.chip{fill:var(--bg);stroke:#047857;stroke-width:1.5}</style>
     <defs>
       <marker id="arrow-dark" markerWidth="11" markerHeight="11" refX="9" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10 Z" fill="#475569"/></marker>
       <marker id="arrow-green" markerWidth="11" markerHeight="11" refX="9" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10 Z" fill="#047857"/></marker>
@@ -116,6 +93,3 @@
     <line x1="1015" y1="710" x2="1055" y2="710" class="signal"/><text class="small" x="1065" y="715">isolated signal</text>
     <line x1="1170" y1="710" x2="1210" y2="710" class="network"/><text class="small" x="1220" y="715">network event</text>
   </svg>
-  <p><a href="/wiki/parts-list.html">Parts list</a> · <a href="/wiki/interface-schematic.html">Provisional schematic</a> · <a href="/wiki/index.html">Project index</a></p>
-</main></body></html>
-

@@ -195,7 +195,6 @@ The nominal 25 VAC value comes from the Data Sync manual, but the actual signal 
 ## Related pages
 
 - [Data Sync adaptation](datasync-adaptation.md)
-- [Interface schematic](interface-schematic.html)
+- [Interface schematic](interface-schematic.svg)
 - [Parts list](parts-list.md)
 - [Wiring build procedure](wiring-build-procedure.md)
-
