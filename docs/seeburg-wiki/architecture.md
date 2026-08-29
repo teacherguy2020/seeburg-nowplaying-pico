@@ -37,7 +37,7 @@ The Pico owns pulse capture, decoding, selection validation, and the network req
 
 ### Now Playing integration
 
-The live route is `POST /integrations/seeburg/selection` on the Now Playing Pi at `10.0.0.4:3101`. It accepts a playlist number from 1 through 100, resolves that position against the saved `Seeburg Playlist`, and appends the selected file without starting playback. The current commissioning playlist contains 36 tracks, so positions 1 through 36 are currently available. `dryRun: true` resolves the selection without changing the queue. `GET /integrations/seeburg/playlist` exposes the current number-to-file mapping.
+The live route is `POST /integrations/seeburg/selection` on the Now Playing Pi at `10.0.0.4:3101`. It accepts a playlist number from 1 through 100 and resolves that position against the saved `Seeburg Playlist`. If MPD is not playing, the route clears the live queue, adds the selected file, and starts playback. If MPD is already playing, it appends the selected file and leaves playback uninterrupted. `dryRun: true` resolves the selection without changing the queue. `GET /integrations/seeburg/playlist` exposes the current number-to-file mapping.
 
 The Now Playing API remains the queue authority and requires the existing Now Playing track key. The Seeburg project uses that existing service rather than an independent MPD controller.
 
@@ -48,3 +48,4 @@ The Now Playing API remains the queue authority and requires the existing Now Pl
 - Replacing the existing Now Playing queue authority
 - Assuming all Seeburg Wallboxes share one wiring scheme
 
+Last updated: 2026-08-29 America/Chicago

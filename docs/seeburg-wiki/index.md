@@ -75,5 +75,9 @@ Now Playing remains the playback and queue system. This project is an input adap
 
 The live integration endpoint is `POST /integrations/seeburg/selection` on the local
 Now Playing host at `10.0.0.4:3101`. It uses the saved `Seeburg Playlist` order as
-the catalog, appends the selected track without starting playback, and currently
-has 36 tracks available while the 100-song playlist is being assembled.
+the catalog. When audio is stopped or paused, it clears the live queue, adds the
+selected track, and starts playback; while audio is already playing, it appends
+the selected track without interrupting playback. The Pico 2W firmware is in
+LIVE mode and is reachable at `10.0.0.118`.
+
+Last updated: 2026-08-29 America/Chicago

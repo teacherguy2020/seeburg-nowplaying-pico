@@ -26,6 +26,9 @@ updated: 2026-08-28 America/Chicago
   no separate intermediary application is required.
 - `Seeburg Playlist` order is the canonical catalog. The endpoint currently has
   36 available positions and is intended to support up to 100.
-- Normal selections append to the queue without starting playback. `dryRun`
-  mode is available for commissioning.
+- Normal selections clear the queue, add the selected track, and start playback
+  when audio is stopped or paused; while audio is playing they append without
+  interrupting playback. `dryRun` is available through the API for
+  commissioning, but is not a Pico firmware mode.
 
+Last updated: 2026-08-29 America/Chicago

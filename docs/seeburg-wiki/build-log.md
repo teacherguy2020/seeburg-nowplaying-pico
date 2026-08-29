@@ -24,8 +24,15 @@ updated: 2026-08-28 America/Chicago
 ## 2026-08-28
 
 - Created and deployed `POST /integrations/seeburg/selection` on the Now Playing Pi at `10.0.0.4:3101`.
-- The endpoint accepts a one-based playlist number, uses `Seeburg Playlist` order, and appends the resolved track without starting playback.
+- The endpoint accepts a one-based playlist number and uses `Seeburg Playlist` order. It clears and starts the selected track when stopped/paused, or appends without interrupting active playback.
 - Added `dryRun` support and `GET /integrations/seeburg/playlist` for commissioning and number-to-file verification.
 - Confirmed the playlist currently contains 36 tracks and tested both dry-run resolution and a real append/cleanup cycle.
 - Revised the architecture so the Pico 2W sends the playlist number directly to the Now Playing API.
 
+## 2026-08-29
+
+- Reviewed the final Pico 2 W LIVE firmware and confirmed its diagnostic page is reachable at `10.0.0.118`.
+- Confirmed the firmware contract: valid selections are decoded locally and sent as `{"number": N}` with `X-Track-Key`; invalid or overflowed captures make no API request.
+- Clarified that RECORD and DRY_RUN are commissioning documentation/API capabilities, not runtime modes in the final Pico `main.py`.
+
+Last updated: 2026-08-29 America/Chicago

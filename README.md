@@ -5,16 +5,15 @@ Wallbox pulse recorder/decoder and direct Now Playing API client.
 
 ## Current status
 
-`main.py` now implements three commissioning modes:
+`main.py` is now the deployed LIVE firmware. It captures both GPIO edges,
+collapses them into electrical envelopes, validates and decodes a selection,
+then sends the resulting playlist number to Now Playing. Invalid or overflowed
+captures are rejected without making an API request.
 
-- `RECORD` captures both GPIO edges, their timestamps, and sampled HIGH/LOW
-  states over USB/serial only. It intentionally applies no minimum-gap filter.
-- `DRY_RUN` validates and decodes a capture, then calls the Now Playing API with
-  `dryRun: true` without changing the queue.
-- `LIVE` validates and decodes a capture, then appends the selected track.
-
-The Wallbox legend and timing thresholds remain provisional until measurements
-from the actual serial-25050 Wallbox confirm them.
+RECORD and DRY_RUN were commissioning plans; they are not runtime modes in the
+current file. Use the Pico diagnostic page and the Now Playing API's explicit
+`dryRun` request from a separate commissioning client when a non-mutating test
+is needed.
 
 ## Hardware and service
 
@@ -23,9 +22,11 @@ from the actual serial-25050 Wallbox confirm them.
 - Now Playing API: `POST /integrations/seeburg/selection`
 - API payload: `{"number": 1}` through `{"number": 100}`
 
-The Pico sends a playlist number. The Now Playing API validates the request,
-looks up that position in the `Seeburg Playlist`, and appends the resolved
-track to MPD without starting playback.
+The Pico sends a playlist number. The Now Playing API validates the request and
+looks up that position in the `Seeburg Playlist`. If playback is stopped or
+paused, the API clears the live queue, adds the selected track, and starts it;
+if playback is already active, it appends the selected track without
+interrupting playback.
 
 ## Local setup
 
@@ -33,5 +34,7 @@ Copy `secrets.example.py` to `secrets.py` and fill in the Wi-Fi credentials.
 Also fill in `TRACK_KEY` with the existing Now Playing API key. `secrets.py` is
 ignored by Git and must not be committed.
 
-Start with `MODE = "RECORD"`. Once traces are understood, change to
-`DRY_RUN`, and use `LIVE` only after the number mapping has been verified.
+The firmware is configured with `MODE = "LIVE"`. Before connecting the
+Wallbox, verify the playlist mapping with `GET /integrations/seeburg/playlist`
+or a `dryRun` API request. A valid physical selection then changes playback
+according to the stopped-versus-playing behavior above.

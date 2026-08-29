@@ -34,15 +34,16 @@ Data Sync Wallbox terminals
 
 The Data Sync terminals are the observation point, not a direct breadboard logic input. The Wallbox-side conductors may carry approximately 25 VAC, so the breadboard begins on the isolated, low-voltage side of the interface.
 
-The Pico software should initially support three commissioning modes:
+The project documentation originally described three commissioning modes:
 
 - **RECORD:** capture timestamped isolated pulse transitions for known selections. No decoding or API activity is required.
 - **DRY RUN:** capture and decode the two pulse groups, convert the result to a playlist number, and submit it to the API with `dryRun: true`. The API resolves the track but does not modify the queue.
 - **LIVE:** capture, decode, convert to a playlist number, and submit it to the API for normal queue append.
 
-The live operation is `append`: the endpoint adds the resolved track to the MPD
-queue without starting playback. A `play next` operation is a possible future
-extension, not part of the current endpoint contract.
+The final live operation depends on playback state: when MPD is stopped or
+paused, the endpoint clears the live queue, adds the resolved track, and starts
+playback. When MPD is already playing, it appends the resolved track to the end
+of the queue without interrupting the current track.
 
 The decoder boundary should remain explicit: the hardware initially produces a timestamped pulse trace, and a protocol/state-machine layer converts that trace into a normalized Wallbox code such as `B3`. The current working legend maps the second group to `A/B`, `C/D`, `E/F`, `G/H`, or `J/K`; the first group maps `2–11` to numbers `1–10` on the pair's first letter and `12–21` to numbers `1–10` on its second letter. Thus `B3` is first-group `14` (`11 + 3`), second-group `1`, and playlist slot `13`. Confirm this with recorded selections before finalizing the decoder. The manual does not describe a self-contained digital code output from the Wallbox.
 
@@ -116,16 +117,12 @@ During development, each completed attempt should log both raw evidence and the 
 }
 ```
 
-The first operational mode is `RECORD`: capture and print both GPIO edges,
-timestamps, and sampled HIGH/LOW states for known button presses without
-decoding or changing playback. RECORD intentionally applies no minimum-gap
-filter, so possible rectified AC/zero-crossing behavior remains visible. After
-the pulse legend and timing are
-verified, use `DRY RUN` so the Pico captures, decodes, converts to a playlist
-number, and submits `dryRun: true`. The endpoint resolves the selection against
-the `Seeburg Playlist` catalog without changing the queue. `LIVE` submits the
-same playlist number as a normal request; the endpoint resolves it and appends
-the resolved track to the MPD queue.
+The final operational mode is `LIVE`: the Pico captures and validates a
+selection, converts it to a playlist number, and submits that number as a
+normal request. Use the Pico diagnostic page for capture/decode evidence. For a
+non-mutating commissioning check, use the API's explicit `dryRun` request from
+a separate client; the current Pico firmware does not implement RECORD or
+DRY_RUN switches.
 
 ## Live Now Playing selection API
 
@@ -149,11 +146,12 @@ The request must include the existing Now Playing track key in the
 `37` through `100` return an out-of-range error until more tracks are added.
 
 On a normal request, the API resolves the number against `Seeburg Playlist` in
-playlist order and appends the selected file to MPD. It does not replace the
-queue and does not start playback. The playlist name defaults to `Seeburg
-Playlist` and can be changed with the `SEEBURG_PLAYLIST_NAME` environment
-setting. Playlist order is therefore the catalog: number 1 is the first saved
-track, number 2 the second, and so on.
+playlist order. If playback is stopped or paused, it clears the live MPD queue,
+adds the selected file, and starts playback. If playback is active, it appends
+the selected file to the end of the queue without interrupting playback. The
+playlist name defaults to `Seeburg Playlist` and can be changed with the
+`SEEBURG_PLAYLIST_NAME` environment setting. Playlist order is therefore the
+catalog: number 1 is the first saved track, number 2 the second, and so on.
 
 Use dry-run mode while commissioning the decoder:
 
@@ -211,4 +209,4 @@ API and queue-event audit trail.
 
 - [Seeburg Wall-O-Matic Type 3W-1 Service Manual](/Users/brianwis/Public/3w1.pdf), pp. 3–5 and 7.
 
-Last updated: 2026-08-28 America/Chicago
+Last updated: 2026-08-29 America/Chicago

@@ -172,7 +172,8 @@ Content-Type: application/json
 ```
 
 The API validates the number, resolves it against the saved `Seeburg Playlist`,
-and appends the selected file without starting playback. The read-only
+and either clears/starts or appends the selected file according to playback
+state. The read-only
 `GET /integrations/seeburg/playlist` endpoint provides the current mapping.
 
 ## Build boundary
@@ -198,3 +199,5 @@ The nominal 25 VAC value comes from the Data Sync manual, but the actual signal 
 - [Interface schematic](interface-schematic.svg)
 - [Parts list](parts-list.md)
 - [Wiring build procedure](wiring-build-procedure.md)
+
+Last updated: 2026-08-29 America/Chicago
