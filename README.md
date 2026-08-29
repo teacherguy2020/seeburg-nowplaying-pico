@@ -1,7 +1,11 @@
 # Seeburg Now Playing Pico
 
 MicroPython firmware for the Raspberry Pi Pico 2 W used as the Seeburg
-Wallbox pulse recorder/decoder and direct Now Playing API client.
+Wallbox pulse recorder/decoder and direct [Now Playing API client](https://github.com/teacherguy2020/now-playing).
+
+[Now Playing](https://github.com/teacherguy2020/now-playing) is the music-control
+application that provides the web interfaces and API for library search,
+playback, queue management, and moOde/MPD integration.
 
 ## Current status
 
