@@ -28,6 +28,16 @@ paused, the API clears the live queue, adds the selected track, and starts it;
 if playback is already active, it appends the selected track without
 interrupting playback.
 
+## Final hardware wiring
+
+The Seeburg's approximately 25 VAC selection signal is isolated from the Pico
+through a DB107 full-wave bridge and an EL817/PC817-type optocoupler module.
+The as-built circuit uses an external 10 kΩ, 1/2-watt series resistor on the
+module input and connects the isolated output to GP15. See the
+[as-built wiring record](docs/seeburg-wiki/as-built-wiring.md) for the exact
+terminal and physical-pin connections. **Never connect Seeburg COMMON to Pico
+GND.**
+
 ## Local setup
 
 Copy `secrets.example.py` to `secrets.py` and fill in the Wi-Fi credentials.

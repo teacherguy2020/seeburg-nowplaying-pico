@@ -6,11 +6,15 @@ topics:
   - optocoupler
   - 25-vac
   - pico
-confidence: medium
-updated: 2026-08-28 America/Chicago
+confidence: high
+updated: 2026-08-29 America/Chicago
 ---
 
 # Isolated Input Stage
+
+The final installed circuit is documented in [As-built wiring](as-built-wiring.md).
+The earlier 3.3 kΩ / bare-PC817 arrangement in this page is historical prototype
+guidance and must not be mistaken for the final wiring.
 
 The isolated input stage is the electrical boundary between the Seeburg/Data Sync Wallbox signal and the low-voltage Pico decoder.
 
@@ -47,7 +51,7 @@ This is a parallel connection. The Data Sync box remains connected and operating
 
 The signal passes through appropriately rated resistors before reaching the optocoupler input. The resistors limit current and protect both the Wallbox circuit and the optocoupler.
 
-The Data Sync manual indicates a nominal 25 VAC signal, approximately 35 V peak. Final resistor values must be calculated from the measured voltage and waveform. A pair of flameproof resistors in series with an AC optocoupler is a candidate topology, not a final wiring instruction.
+The installed Wallbox signal measured approximately 25 VAC. After bridge rectification its peak can approach 35.4 V. The final circuit uses the measured approximately 470 Ω module input resistance plus an external 10 kΩ, 1/2-watt series resistor. Verify values for every module.
 
 An AC-input optocoupler such as an H11AA1 is a candidate because its antiparallel LEDs sense both halves of the AC waveform. A bridge rectifier followed by a conventional optocoupler is an alternative. Use one approach or the other, not both.
 
@@ -79,26 +83,25 @@ For the one-channel breadboard prototype, wire in this order after the signal ha
 
 1. Put the two wires that already serve the Data Sync Wallbox input on a removable terminal block labeled `WB_SIGNAL` and `WB_COMMON`. This is a parallel tap; the Data Sync adapter stays connected.
 2. Connect `WB_SIGNAL` and `WB_COMMON` to the DB107 bridge rectifier’s two terminals marked `~`. Verify the markings on the part rather than relying on its orientation.
-3. Connect DB107 `+` to the first 3.3 kΩ resistor, then the second 3.3 kΩ resistor in series, then to the PC817 LED anode (pin 1 on the common DIP-4 pinout).
-4. Connect the PC817 LED cathode (pin 2 on the common DIP-4 pinout) to DB107 `−`.
-5. On the other side of the PC817, connect the emitter (commonly pin 3) to Pico `GND`.
-6. Connect the collector (commonly pin 4) to the chosen Pico GPIO. This is one junction, not a series path.
-7. Connect one lead of the 10 kΩ pull-up resistor to Pico `3V3` and its other lead to that same GPIO/collector junction.
-8. Power and test only the Pico-side circuit first. The GPIO should be high when the optocoupler is off and should be pulled low while the Wallbox signal turns the optocoupler on.
+3. Connect DB107 `+` through the external 10 kΩ, 1/2-watt resistor to module `INPUT+`.
+4. Connect module `INPUT−` to DB107 `−`.
+5. On the isolated output side, connect module `VCC` to Pico physical pin 36 (`3V3(OUT)`), `OUT` to GP15 / physical pin 20, and `GND` to Pico GND / physical pin 38.
+6. Keep Seeburg COMMON and DB107 `+`/`−` entirely off Pico ground and GPIO.
+7. Power and test only the Pico-side circuit first. GP15 should be high when the optocoupler is off and pulled low when the Wallbox signal turns it on.
 
 ```text
 Wallbox SIGNAL ───── DB107 ~
 Wallbox COMMON ───── DB107 ~
 
-DB107 + ── 3.3 kΩ ── 3.3 kΩ ── PC817 LED anode
-DB107 − ─────────────────────── PC817 LED cathode
+DB107 + ── 10 kΩ, 1/2 W ── module INPUT+
+DB107 − ─────────────────── module INPUT−
 
-Pico 3V3 ── 10 kΩ ──┬── Pico GPIO
-                    └── PC817 collector
-Pico GND ─────────────── PC817 emitter
+Pico 3V3(OUT), pin 36 ── module VCC
+Pico GP15, pin 20 ─────── module OUT
+Pico GND, pin 38 ──────── module GND
 ```
 
-The first four connections are Wallbox-side and must be enclosed or mounted on a separated interface board. Only the PC817 transistor, 10 kΩ pull-up, Pico GPIO, Pico ground, and optional indicator belong on the low-voltage breadboard. Never connect DB107 `+` or `−` to Pico ground or GPIO.
+The first four connections are Wallbox-side and must be enclosed or mounted on a separated interface board. Only the module output terminals, Pico 3V3, GP15, and Pico ground belong on the low-voltage side. Never connect DB107 `+` or `−`, or Seeburg COMMON, to Pico ground or GPIO.
 
 ## Isolation barrier
 
@@ -113,7 +116,7 @@ Use suitable creepage and clearance, insulated terminals, strain relief, and a c
 
 ## Pico-side circuit
 
-If using the purchased PC817 module rather than a bare PC817 DIP, its isolated output side is typically labeled `VCC`, `GND`, and `OUT`. Connect it as follows, after confirming the module documentation says its output accepts 3.3 V:
+The purchased EL817/PC817-type module has input terminals labeled `+ INPUT -` and isolated output terminals labeled `VCC`, `GND`, and `OUT`. Connect it as follows, after confirming the labels and module documentation:
 
 ```text
 Module VCC ── Pico physical pin 36 (3V3(OUT))
@@ -125,19 +128,17 @@ Module OUT ── chosen Pico GPIO, such as GP15
 
 On a standard Raspberry Pi Pico/Pico 2 W, physical pin 36 is `3V3(OUT)`. Confirm the pinout for the exact Pico board before powering the module. If the module requires more than 3.3 V on `VCC`, do not connect it to pin 36; use a separately verified supply and confirm that `OUT` is safe for a 3.3 V GPIO.
 
-The optocoupler transistor acts as a switch:
+The optocoupler output acts as a switch:
 
 ```text
-Pico 3.3 V ── 10 kΩ pull-up ── GPIO input
-                              │
-                    optocoupler transistor
-                              │
-                         Pico GND
+Pico 3V3(OUT), pin 36 ── module VCC
+Pico GP15, pin 20 ─────── module OUT
+Pico GND, pin 38 ──────── module GND
 ```
 
 When the Wallbox signal is present, the optocoupler pulls the GPIO low. When it disappears, the pull-up returns the GPIO high. There is no shared ground between the Wallbox side and Pico side.
 
-A small capacitor may eventually suppress brief noise spikes, but heavy filtering should wait until timing tests are complete. Excessive filtering could distort the Wallbox pulses.
+No smoothing capacitor is used in the final circuit. The Pico intentionally decodes the rapid rectified-AC transitions into slower electrical envelopes.
 
 ## Pico capture behavior
 
@@ -180,18 +181,21 @@ state. The read-only
 
 The breadboard should contain the Pico, optocoupler output, pull-up resistor, optional indicator LED, and test headers. The Wallbox terminal, AC-side resistors, protection components, and isolation barrier belong in a covered interface section and should eventually move to perfboard or a small enclosure.
 
-## Open electrical measurements
+## As-built measurements
 
-Do not finalize component values until these are measured at the Data Sync `SIGNAL/COMMON` terminals:
+The final installation measured the following at the Data Sync `SIGNAL/COMMON` terminals and Pico input:
 
 - idle voltage;
 - voltage during a selection;
 - AC or DC waveform and polarity;
 - pulse duration and spacing;
-- whether the signal returns fully to zero between pulses;
+- raw intervals around 7–8 ms and 1–2 ms from full-wave rectification;
+- normal envelopes around 40–46 ms, spacing around 35–44 ms, and group separators around 200–206 ms;
+- a left-side letter energized envelope around 865–870 ms;
+- no smoothing capacitor, regulator, or Schmitt trigger is used.
 - whether adding the sensing branch changes Data Sync operation.
 
-The nominal 25 VAC value comes from the Data Sync manual, but the actual signal at this installation must be verified before connecting the optocoupler circuit.
+The approximately 25 VAC value and component values are specific to this installation and module. Verify them before reproducing the interface.
 
 ## Related pages
 

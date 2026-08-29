@@ -25,9 +25,14 @@ An isolated interface converts the Wallbox contact circuit into safe logic-level
 
 A Raspberry Pi Pico or ESP32 is the preferred first decoder. It can handle contact bounce, timing, edge capture, and state transitions deterministically.
 
-### Pico 2W API client
+### Final isolated input and Pico 2W API client
 
-The Pico owns pulse capture, decoding, selection validation, and the network request. After decoding a selection such as `B3`, it converts the selection to the corresponding one-based playlist number and sends that number directly to the Now Playing API. The request uses the existing `X-Track-Key` authentication header:
+The final interface is `Seeburg SIGNAL/COMMON → DB107 ~/~ → DB107 + → 10 kΩ,
+1/2 W → EL817 module INPUT+/-`; the module output side connects `VCC` to Pico
+3V3(OUT), `OUT` to GP15, and `GND` to Pico GND. The Seeburg and Pico grounds
+remain isolated. See [As-built wiring](as-built-wiring.md).
+
+The Pico 2W API client owns pulse capture, decoding, selection validation, and the network request. After decoding a selection such as `B3`, it converts the selection to the corresponding one-based playlist number and sends that number directly to the Now Playing API. The request uses the existing `X-Track-Key` authentication header:
 
 ```json
 {

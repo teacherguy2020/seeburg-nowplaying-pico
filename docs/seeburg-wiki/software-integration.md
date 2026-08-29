@@ -6,13 +6,13 @@ topics:
   - api
   - now-playing
   - mpd
-confidence: medium
-updated: 2026-08-28 America/Chicago
+confidence: high
+updated: 2026-08-29 America/Chicago
 ---
 
 # Software Integration
 
-## Proposed event flow
+## Final event flow
 
 ```text
 contact trace → decoder event → Wallbox code → playlist number → authenticated API request → catalog lookup → queue append
@@ -20,12 +20,12 @@ contact trace → decoder event → Wallbox code → playlist number → authent
 
 ## Working implementation plan
 
-The first software/hardware path will be:
+The deployed software/hardware path is:
 
 ```text
 Data Sync Wallbox terminals
   → removable parallel breakout
-  → isolated 25 VAC input stage
+  → DB107 bridge → 10 kΩ series resistor → EL817 module
   → low-voltage Pico input
   → raw pulse recorder / decoder
   → authenticated Now Playing API
@@ -34,11 +34,10 @@ Data Sync Wallbox terminals
 
 The Data Sync terminals are the observation point, not a direct breadboard logic input. The Wallbox-side conductors may carry approximately 25 VAC, so the breadboard begins on the isolated, low-voltage side of the interface.
 
-The project documentation originally described three commissioning modes:
-
-- **RECORD:** capture timestamped isolated pulse transitions for known selections. No decoding or API activity is required.
-- **DRY RUN:** capture and decode the two pulse groups, convert the result to a playlist number, and submit it to the API with `dryRun: true`. The API resolves the track but does not modify the queue.
-- **LIVE:** capture, decode, convert to a playlist number, and submit it to the API for normal queue append.
+The current `main.py` is LIVE-only firmware. It captures, decodes, validates,
+and submits selections. RECORD and DRY_RUN are commissioning procedures, not
+runtime modes in the firmware: use the Pico diagnostic page for evidence and
+send an explicit `dryRun` request from a separate commissioning client.
 
 The final live operation depends on playback state: when MPD is stopped or
 paused, the endpoint clears the live queue, adds the resolved track, and starts
@@ -57,7 +56,7 @@ queue integration.
 
 ## Pico 2W pulse-decoder program
 
-The Pico 2W is the real-time pulse recorder / decoder and direct Now Playing API client. The current device is reachable at DHCP address `10.0.0.118`; its firmware entry point is [`main.py`](../../main.py). The project `main.py` implements GPIO capture, provisional decoding, and the authenticated API request. It imports Wi-Fi and HTTP support only for `DRY_RUN` and `LIVE`, so `RECORD` mode can operate as a serial-only instrument.
+The Pico 2W is the real-time pulse recorder / decoder and direct Now Playing API client. The current device is reachable at DHCP address `10.0.0.118`; its firmware entry point is [`main.py`](../../main.py). The project `main.py` implements GPIO capture, decoding, validation, and the authenticated LIVE API request.
 
 The program should keep pulse timing and decoding on the Pico while the Now Playing API handles catalog lookup, authentication validation, queueing, and playback control:
 
@@ -76,7 +75,11 @@ isolated optocoupler output
 
 ### Pulse capture
 
-Configure one GPIO interrupt on the active signal edge, initially expected to be the falling edge from the optocoupler output. The interrupt handler should only record a monotonic timestamp and return; it should not perform Wi-Fi or other slow operations. A small minimum-edge interval should reject contact bounce, with the initial value determined from captured traces rather than assumed permanently.
+The EL817 module output is connected to GP15. Configure the GPIO interrupt on
+the active signal edges. The interrupt handler records monotonic timestamps and
+returns; it does not perform Wi-Fi or other slow operations. The decoder groups
+the rectified-AC transitions into envelopes rather than treating each raw edge
+as a mechanical pulse.
 
 ### Grouping and state machine
 

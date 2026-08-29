@@ -5,13 +5,15 @@ topics:
   - hardware
   - interface
   - decoder
-confidence: low
-updated: 2026-08-28 America/Chicago
+confidence: high
+updated: 2026-08-29 America/Chicago
 ---
 
 # Parts List
 
-This is a planning bill of materials for serial 25050. The interface values are intentionally not final until the Wallbox connector and contact waveforms are measured.
+This is the bill of materials for the as-built serial-25050 interface. The
+electrical values below reflect the measured installation; verify the exact
+optocoupler module and Wallbox signal before reproducing it.
 
 ## Core hardware
 
@@ -29,11 +31,11 @@ This is a planning bill of materials for serial 25050. The interface values are 
 
 | Qty | Part | Purpose | Status |
 | ---: | --- | --- | --- |
-| 1 | H11AA1 AC-input optocoupler, or approved equivalent | Sense the Data Sync two-wire signal/common pair | First prototype; validate waveform and current first |
-| 2 | Flameproof resistor(s), initially around 4.7 kΩ, 0.5 W | Optocoupler AC-side current limiting | Value and arrangement TBD by measurement |
-| 1 | Bridge rectifier plus standard optocoupler | Alternative to an AC-input optocoupler | Use one approach, not both |
-| 1 | 10 kΩ pull-up resistor | Logic-side optocoupler output | Candidate; 3.3 V Pico logic |
-| 1 | 100 nF capacitor | Optional logic-side noise filter | Fit only after timing tests |
+| 1 | EL817/PC817-type optocoupler module | Isolated signal detection; input `+ INPUT -`, output `VCC OUT GND` | As built; verify module values |
+| 1 | DB107 full-wave bridge rectifier | Rectifies Wallbox `SIGNAL`/`COMMON` AC | As built; no isolation by itself |
+| 1 | 10 kΩ, 1/2 W resistor | External series current limiting on bridge `+` → module `INPUT+` | As built |
+| 1 | Module input resistor, approximately 470 Ω | Part of purchased optocoupler module | Measured; verify before reproduction |
+| 1 | Module output pull-up, approximately 10 kΩ | Module output-side pull-up | Measured; verify before reproduction |
 | 1 | 4-channel or 8-channel logic-level interface board | Convenient Pico terminal breakout | Recommended |
 
 ## Test and installation items
@@ -58,22 +60,20 @@ This is a planning bill of materials for serial 25050. The interface values are 
 
 The solderless breadboard is for the Pico, pull-ups, indicator LEDs, and other logic-side tests. Do not put the Wallbox’s 25 VAC conductors or an unverified contact circuit into the breadboard. Keep the input protection, fuse, terminals, and isolation components in a physically separate covered section; move the validated interface to perfboard or a suitable enclosure before regular use.
 
-## Current prototype shopping list
+## As-built one-channel interface
 
 The following is the concrete first-pass set discussed for one sensing channel:
 
 | Qty | Part | Connection/order | Notes |
 | ---: | --- | --- | --- |
 | 1 | DB107 full-wave bridge rectifier (or equivalent) | Wallbox `SIGNAL` and `COMMON` → bridge `~`, `~` | Bridge only rectifies; it does not isolate |
-| 2 | 3.3 kΩ, 0.5 W metal-film resistors | Bridge `+` → resistor → resistor → PC817 LED anode | 6.6 kΩ total; provisional starting value |
-| 1 | PC817 optocoupler | LED side on bridge output; transistor side on Pico side | Confirm pinout on the actual package |
-| 1 | 10 kΩ, 0.25–0.5 W resistor | Pico `3V3` → GPIO junction | External pull-up for PC817 collector |
-| 1 | Pico 2 W with breakout | GPIO junction → selected GPIO; emitter → Pico `GND` | Logic-side breadboard only |
-| 1 | Breadboard | PC817 transistor side, pull-up, Pico, test LED | Do not insert Wallbox wires directly |
+| 1 | EL817/PC817-type optocoupler module | `INPUT+` from external resistor, `INPUT−` to DB107 `−`; output side to Pico | Do not assume module internals |
+| 1 | External 10 kΩ, 1/2 W resistor | DB107 `+` → module `INPUT+` | Required as installed |
+| 1 | Pico 2 W | Module `VCC` → physical pin 36; `OUT` → GP15 / physical pin 20; `GND` → physical pin 38 | Logic side only |
+| 1 | Enclosure / barrier terminals | Keep Seeburg-side circuit covered and separated | Required for safe installation |
 
-The 3.3 kΩ parts must be marked `3.3 kΩ`, `3,300 Ω`, or `3K3`; `3.3 Ω` parts are a different component and must not be used. The bridge, series resistors, and PC817 LED remain on the Wallbox side of the isolation boundary. Confirm the actual voltage and current before treating these values as final.
+The older 3.3 kΩ pair / bare-PC817 arrangement was a provisional prototype and is not the final installed wiring. The final circuit uses the purchased module's measured approximately 470 Ω input resistor plus the external 10 kΩ, 1/2-watt series resistor. The bridge and module input remain on the Seeburg side; the module output is the only signal crossing to the Pico logic side.
 
 ## Important qualification
 
-Do not purchase or install the optocoupler resistor network as a final circuit yet. The manual establishes the 25 VAC Wallbox system and pulse behavior, but not the safe sensing point for this individual unit. First identify the three conductors and measure the open-circuit voltage, contact current, and polarity/waveform with the Wallbox disconnected from any jukebox.
-
+The as-built values are specific to this 3W-1 installation and this optocoupler module. Verify the Wallbox voltage, module input resistor, output pull-up, terminal labels, insulation, and resistor dissipation before reproducing the circuit. Do not connect Seeburg COMMON to Pico GND.

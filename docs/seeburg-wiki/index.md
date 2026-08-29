@@ -27,7 +27,7 @@ Allow a person to make a selection on the Wallbox—eventually represented as a 
 3. A small real-time controller debounces and decodes the contact sequence.
 4. The Pico converts the validated selection to a playlist position from 1 through 100.
 5. The Pico submits that number directly to the Now Playing app-host API.
-6. Now Playing appends the resolved track through its existing queue control path.
+6. Now Playing clears and starts the selected track when stopped or paused, and appends it without interruption when playback is active.
 
 ## Pages
 
@@ -43,13 +43,14 @@ Allow a person to make a selection on the Wallbox—eventually represented as a 
 - [Step-by-step wiring procedure](wiring-build-procedure.md)
 - [Data Sync Wallbox to iPod adaptation](datasync-adaptation.md)
 - [Isolated input stage](isolated-input-stage.md)
+- [As-built wiring record](as-built-wiring.md)
 
 The diagrams are included as standalone SVG images so GitHub can render them
 directly:
 
 ![Components and wiring diagram](components-wiring.svg)
 
-![Provisional interface schematic](interface-schematic.svg)
+![Interface schematic](interface-schematic.svg)
 
 ## Confirmed from the 3W-1 manual
 
@@ -64,6 +65,15 @@ directly:
 - The project’s Wallbox is stamped serial 25050, placing it in the later, above-16645 variant; see [`wallbox-serial.jpg`](/Users/brianwis/Public/wallbox-serial.jpg).
 
 These findings come from manual pages 2–11, especially Figures 2, 15, 16, and 17.
+
+## Confirmed as-built interface
+
+The working installation is documented in [As-built wiring](as-built-wiring.md).
+It uses the Wallbox `SIGNAL`/`COMMON` pair into the two DB107 `~` terminals,
+an external 10 kΩ, 1/2-watt resistor from DB107 `+` to the optocoupler module's
+`INPUT+`, and the module's isolated `VCC`/`OUT`/`GND` terminals to Pico 3V3,
+GP15, and GND. Seeburg COMMON and Pico GND are not connected. The observed
+rectified-AC timing is decoded in software rather than smoothed in hardware.
 
 ## Evidence rule
 

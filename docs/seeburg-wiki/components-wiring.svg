@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-  <svg viewBox="0 0 1400 800" role="img" aria-label="Wiring diagram showing two wires from the Seeburg Wallbox and Data Sync tap entering a DB107 bridge, two 3.3 kilohm resistors, a PC817 optocoupler, then a 10 kilohm pull-up and Pico GPIO on a logic-only breadboard, followed by the Now Playing API and MPD">
+  <svg viewBox="0 0 1400 800" role="img" aria-label="As-built wiring diagram showing two wires from the Seeburg Wallbox entering a DB107 bridge, an external 10 kilohm half-watt resistor, an EL817 or PC817 optocoupler module, then Pico 3V3, GP15, and ground on the isolated output side, followed by the Now Playing API and MPD">
 <style>:root{color-scheme:light dark;--bg:#f8fafc;--fg:#172033;--muted:#5b6475;--line:#475569;--wall:#fef3c7;--interface:#dcfce7;--logic:#dbeafe;--service:#ede9fe;--warn:#ffedd5}@media(prefers-color-scheme:dark){:root{--bg:#0f172a;--fg:#e5e7eb;--muted:#a3adbd;--line:#cbd5e1;--wall:#713f12;--interface:#14532d;--logic:#1e3a8a;--service:#4c1d95;--warn:#7c2d12}}text{font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;fill:var(--fg)}.title{font-size:21px;font-weight:700}.label{font-size:17px;font-weight:650}.small{font-size:13px;fill:var(--muted)}.tiny{font-size:12px;fill:var(--muted)}.zone{stroke:var(--line);stroke-width:1.5;stroke-dasharray:8 6;opacity:.7}.box{stroke:var(--line);stroke-width:1.7}.wall{fill:var(--wall)}.interface{fill:var(--interface)}.logic{fill:var(--logic)}.service{fill:var(--service)}.warn{fill:var(--warn)}.wire{fill:none;stroke:var(--line);stroke-width:3}.signal{fill:none;stroke:#047857;stroke-width:3}.power{fill:none;stroke:#2563eb;stroke-width:3}.network{fill:none;stroke:#7c3aed;stroke-width:3;stroke-dasharray:9 6}.port{fill:var(--bg);stroke:var(--line);stroke-width:1.5}.chip{fill:var(--bg);stroke:#047857;stroke-width:1.5}</style>
     <defs>
       <marker id="arrow-dark" markerWidth="11" markerHeight="11" refX="9" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10 Z" fill="#475569"/></marker>
@@ -49,9 +49,9 @@
     <rect class="port" x="454" y="280" width="210" height="150" rx="8"/>
     <text class="label" x="472" y="306">One sensing channel</text>
     <text class="small" x="472" y="334">DB107: Wallbox → `~` `~`</text>
-    <text class="small" x="472" y="358">`+` → 3.3 kΩ → 3.3 kΩ</text>
-    <text class="small" x="472" y="382">→ PC817 LED → `−`</text>
-    <text class="small" x="472" y="406">PC817 is isolation barrier</text>
+    <text class="small" x="472" y="358">`+` → 10 kΩ, 1/2 W → INPUT+</text>
+    <text class="small" x="472" y="382">INPUT− → `−`</text>
+    <text class="small" x="472" y="406">EL817 module is isolation barrier</text>
     <text class="tiny" x="454" y="458">Covered Wallbox-side section;</text><text class="tiny" x="454" y="476">no shared Pico ground.</text>
     <circle class="chip" cx="690" cy="300" r="6"/>
 
