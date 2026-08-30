@@ -16,7 +16,7 @@ updated: 2026-08-28 America/Chicago
 - Created the separate `seeburg-wallbox/` project directory.
 - Established a provisional architecture: isolated contact sensing, real-time decoding, and Now Playing queue append.
 - No Wallbox electrical claims have been confirmed yet.
-- Reviewed `/Users/brianwis/Public/3w1.pdf`, the 33-page Type 3W-1 service manual.
+- Reviewed the 33-page [Type 3W-1 service manual](https://www.scribd.com/doc/307530754/See-Burg-3w-1-Service-Manual).
 - Confirmed the 25 VAC three-wire interface, motor-driven grounded selector wiper, two pulse groups, approximate pulse timing, 24 RPM nominal motor speed, and serial-dependent circuit variants.
 - Revised the decoder plan: capture and decode a pulse trace rather than expecting the Wallbox contacts to expose a literal `B3` signal.
 - Photograph `/Users/brianwis/Public/wallbox-serial.jpg` confirms the chassis stamp `25050`; classify the unit as the above-16645 three-blade variant.

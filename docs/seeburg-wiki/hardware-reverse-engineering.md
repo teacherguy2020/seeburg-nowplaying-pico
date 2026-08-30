@@ -80,4 +80,4 @@ documentation only as a reference for this measured installation.
 
 ## Source
 
-- Seeburg Wall-O-Matic Type 3W-1 Service Manual, pp. 2–11, Figures 2 and 15–17.
+- [Seeburg Wall-O-Matic Type 3W-1 Service Manual](https://www.scribd.com/doc/307530754/See-Burg-3w-1-Service-Manual), pp. 2–11, Figures 2 and 15–17.

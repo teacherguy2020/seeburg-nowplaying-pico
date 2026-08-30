@@ -60,6 +60,7 @@ render it directly:
 - Schematics differ by serial range: below 2303, 2303–16646, and above 16645. The project’s Wallbox is stamped serial 25050, placing it in the later, above-16645 variant.
 
 These findings come from manual pages 2–11, especially Figures 2, 15, 16, and 17.
+The source manual is available on [Scribd](https://www.scribd.com/doc/307530754/See-Burg-3w-1-Service-Manual).
 
 ## Confirmed as-built interface
 
