@@ -42,7 +42,6 @@ appended through the Now Playing API.
 - [Parts list](parts-list.md)
 - [Components and wiring graphic](components-wiring.svg)
 - [As-built wiring record](as-built-wiring.md)
-- [Data Sync Wallbox to iPod adaptation](datasync-adaptation.md) *(historical/background)*
 
 The as-built wiring diagram is included as a standalone SVG image so GitHub can
 render it directly:
