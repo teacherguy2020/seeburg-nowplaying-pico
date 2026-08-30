@@ -33,6 +33,7 @@ GROUP_GAP_MAX_MS = 300
 GROUP_GAP_TARGET_MS = 200
 NUMBER_LANDMARK_GAP_MIN_MS = 100
 NUMBER_LANDMARK_GAP_MAX_MS = 145
+RIGHT_PREAMBLE_GAP_MIN_MS = 300
 LEFT_OFFSET_GAP_MIN_MS = 100
 LEFT_DIRECT_GAP_MAX_MS = 85
 WEB_PORT = 80
@@ -190,6 +191,32 @@ def decode_left_number(envelopes, gaps, long_index):
     return result
 
 
+def right_group_start_index(gaps, separator_after):
+    """Return zero-based envelope index where the real RIGHT first group starts.
+
+    Some captures begin with short startup/noise envelopes before the actual
+    Wallbox pulse train. If a large gap appears before the true group separator,
+    everything before that gap is treated as preamble.
+
+    Example from D6:
+        3 ms envelope
+        10 ms envelope
+        353 ms gap
+        [real first group begins]
+    """
+    start_index = 0
+
+    for gap in gaps:
+        if gap["after_envelope"] >= separator_after:
+            break
+        if gap["duration_ms"] >= RIGHT_PREAMBLE_GAP_MIN_MS:
+            # after_envelope is 1-based and also equals the zero-based index
+            # of the next envelope.
+            start_index = gap["after_envelope"]
+
+    return start_index
+
+
 def decode_right_number(envelopes, gaps, separator_after):
     result = {
         "valid": False,
@@ -198,14 +225,26 @@ def decode_right_number(envelopes, gaps, separator_after):
         "landmark_gap_ms": None,
         "reason": None,
     }
-    first_group = envelopes[:separator_after]
-    observed_count = sum(1 for e in first_group if is_countable_envelope(e))
+
+    start_index = right_group_start_index(gaps, separator_after)
+    first_group = envelopes[start_index:separator_after]
+
+    observed_count = sum(
+        1 for e in first_group
+        if is_countable_envelope(e)
+    )
     result["observed_count"] = observed_count
 
     landmarks = []
+
     for gap in gaps:
         if gap["after_envelope"] >= separator_after:
             break
+
+        # Ignore gaps that belong to discarded preamble.
+        if gap["after_envelope"] <= start_index:
+            continue
+
         if gap_is_number_landmark(gap["duration_ms"]):
             landmarks.append(gap)
 
@@ -215,11 +254,23 @@ def decode_right_number(envelopes, gaps, separator_after):
 
     if len(landmarks) == 1:
         landmark = landmarks[0]
-        number = landmark["after_envelope"] + 1
         result["landmark_gap_ms"] = landmark["duration_ms"]
+
+        # Count only valid envelopes from the real first-group start to the
+        # landmark. This avoids raw envelope-number errors when startup junk
+        # is present before the actual selection train.
+        count_before_landmark = sum(
+            1
+            for e in envelopes[start_index:landmark["after_envelope"]]
+            if is_countable_envelope(e)
+        )
+
+        number = count_before_landmark + 1
+
         if not 1 <= number <= 10:
             result["reason"] = "RIGHT landmark number outside 1..10: {}".format(number)
             return result
+
         expected = number + 10
         if observed_count not in (expected, expected + 1):
             result["reason"] = (
@@ -437,7 +488,7 @@ def process_capture(times, states, overflow):
     latest_api_error = None
 
     if overflow:
-        latest_status = "Capture overflow — decode/API skipped"
+        latest_status = "Capture overflow â decode/API skipped"
         return
 
     if not decoded["valid"]:
@@ -445,7 +496,7 @@ def process_capture(times, states, overflow):
         print("\nSEEBURG DECODE REJECTED:", latest_decode_reason)
         return
 
-    latest_status = "Decoded {} — sending LIVE selection".format(latest_wallbox_code)
+    latest_status = "Decoded {} â sending LIVE selection".format(latest_wallbox_code)
     print("\nSEEBURG LIVE")
     print("Decoded:", latest_wallbox_code)
     print("Playlist #:", latest_playlist_number)
@@ -568,7 +619,7 @@ def build_status_page(wlan, signal):
             parts.append("<br><b>Response:</b><div class='mono'>{}</div>".format(html_escape(latest_api_body)))
         if latest_api_error:
             parts.append("<br><b>Error:</b><div class='mono'>{}</div>".format(html_escape(latest_api_error)))
-    parts.append("<br><span class='warn'>LIVE — valid decoded selections are sent to Now Playing.</span></div>")
+    parts.append("<br><span class='warn'>LIVE â valid decoded selections are sent to Now Playing.</span></div>")
 
     parts.append("<h2>Latest Capture</h2><div class='box'>")
     if latest_capture_sequence == 0:
@@ -688,7 +739,7 @@ while True:
     if ticks_delta(now, last_wifi_retry_ms) >= WIFI_RETRY_MS:
         last_wifi_retry_ms = now
         if not wlan.isconnected():
-            latest_status = "Wi-Fi disconnected — reconnecting"
+            latest_status = "Wi-Fi disconnected â reconnecting"
             wlan = connect_wifi()
             if wlan.isconnected():
                 latest_status = "Wi-Fi reconnected"
