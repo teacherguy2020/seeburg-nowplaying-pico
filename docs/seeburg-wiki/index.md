@@ -33,7 +33,6 @@ Allow a person to make a selection on the Wallbox—eventually represented as a 
 
 - [Architecture](architecture.md)
 - [Hardware reverse engineering](hardware-reverse-engineering.md)
-- [Selection catalog](selection-catalog.md)
 - [Software integration](software-integration.md)
 - [Build log](build-log.md)
 - [Parts list](parts-list.md)
