@@ -1,39 +1,27 @@
 ---
 title: hardware-reverse-engineering
-page_type: workflow
+page_type: historical-background
 topics:
   - hardware
   - contacts
   - safety
-confidence: medium
-updated: 2026-08-26 America/Chicago
+confidence: high
+updated: 2026-08-29 America/Chicago
 ---
 
 # Hardware Reverse Engineering
 
-## 3W-1 manual findings
+This page records what was learned from the Seeburg 3W-1 service manual and
+the measured serial-25050 Wallbox. It is background for the finished project;
+the final component values and connections are documented in
+[As-built wiring](as-built-wiring.md).
 
-### Working pulse legend
+## What the manual describes
 
-The current working interpretation is that the first pulse group carries
-both the number and which letter in a pair was selected. The second group
-identifies the letter pair:
-
-| Second group | Letter pair |
-| ---: | :--- |
-| 1 pulse | A/B |
-| 2 pulses | C/D |
-| 3 pulses | E/F |
-| 4 pulses | G/H |
-| 5 pulses | J/K |
-
-For the first group, 2–11 pulses select numbers 1–10 on the pair's first
-letter (`pulses - 1`), while 12–21 pulses select numbers 1–10 on its second
-letter (`pulses - 11`). For example, `B3` is first-group 14 (`11 + 3`) and
-second-group 1, giving playlist slot 13. This remains a working hypothesis until several
-known selections are recorded from the serial-25050 Wallbox.
-
-The Type 3W-1 is not a passive matrix keypad. Its selection buttons latch mechanically, start a 25 VAC motor, and route the motor-driven selector-plate contact sequence into the jukebox’s Selection Receiver. The receiver interprets two pulse groups:
+The Wall-O-Matic is not a passive matrix keypad. Its selection buttons latch
+mechanically, start a 25 VAC motor, and route a motor-driven selector-plate
+contact sequence into the jukebox's Selection Receiver. The receiver interprets
+two pulse groups rather than receiving a literal digital `B3` value:
 
 ```text
 first group: 2–21 pulses
@@ -42,41 +30,54 @@ second group: 1–5 pulses
 individual pulse spacing: approximately 0.04 s
 ```
 
-The manual’s simplified schematic shows a three-wire interface: blue, green, and orange. It labels orange as the grounded selection-circuit conductor and shows 25 VAC lighting/motor power between the other conductors. Isolation and current limiting remain mandatory.
+The second group identifies one of five letter pairs:
 
-The manual documents three circuit variants by serial range. In particular, units above serial 16645 use a three-blade latch-bar setting/carry-over arrangement, while earlier units use a separate motor switch arrangement. The project unit is stamped serial 25050, confirming that it belongs to the later variant. Compare the actual wiring against the corresponding schematic before testing.
+| Second group | Letter pair |
+|---:|:---|
+| 1 | A/B |
+| 2 | C/D |
+| 3 | E/F |
+| 4 | G/H |
+| 5 | J/K |
 
-## Required identification
+The first group carries the number and identifies which letter in the pair was
+selected. The finished Pico decoder implements this interpretation using the
+measured electrical envelopes and additional timing checks described in
+[Decoder](decoder.md).
 
-- Wallbox model and serial information
-- Jukebox model for which it was intended
-- Connector type and pin labels
-- Internal contact-stack and selector photographs
-- Original schematic or service documentation, if available
+## Unit-specific findings
 
-## Initial investigation
+The project Wallbox is stamped serial `25050`, placing it in the later
+above-16645 three-blade latch-bar variant. The manual documents different
+circuit variants by serial range, so the schematic and conductor functions
+must be verified for the actual unit rather than assumed from a generic
+Seeburg drawing.
 
-1. Photograph and label every wire before disconnecting anything.
-2. Determine the contact common/return paths with the unit unpowered.
-3. Use continuity measurements to map selector positions.
-4. Record enough selections to verify the two-group legend and its pulse counts.
-5. Identify any latch, credit, trigger, home, or selection-complete contact.
-6. Only then determine the required isolated sensing circuit.
+The working interface taps the verified `SIGNAL`/`COMMON` pair and keeps the
+approximately 25 VAC Wallbox circuit isolated from the Pico. The final DB107,
+external 10 kΩ resistor, and EL817 module arrangement is recorded in
+[As-built wiring](as-built-wiring.md).
 
-## Safety constraints
+## Lessons from the investigation
 
-Do not apply an assumed voltage to an unidentified Wallbox. Some units depend on the jukebox's relay and lamp circuitry, and the observed contact behavior may not be meaningful when powered independently. Use current limiting and galvanic isolation; confirm AC versus DC before choosing an input board.
+- The Wallbox output must be treated as an electrical waveform, not as a
+  pre-decoded selection code.
+- Full-wave rectification without smoothing produces many rapid transitions;
+  those transitions can still be grouped reliably in software.
+- Motor speed, contact condition, mechanical bounce, and selector direction
+  affect the timing seen by the decoder.
+- The exact Wallbox variant and signal conductors must be identified before
+  connecting any sensing circuit.
+- Galvanic isolation and current limiting are mandatory when interfacing the
+  vintage 25 VAC circuitry to 3.3 V electronics.
 
-## Expected decoder concerns
+## Safety boundary
 
-- Mechanical bounce
-- Contact oxidation and intermittent closure
-- Selector movement direction
-- Repeated transitions while the dial spins
-- Timeout and cancellation behavior
-- A second selection before the first has been submitted
+Do not apply an assumed voltage to another Wallbox or connect its conductors
+directly to Pico GPIO, USB ground, or a computer. Confirm the model, serial
+variant, signal voltage, and conductor functions first. Use the final as-built
+documentation only as a reference for this measured installation.
 
 ## Source
 
-- [Seeburg Wall-O-Matic Type 3W-1 Service Manual](/Users/brianwis/Public/3w1.pdf), pp. 2–11, Figures 2, 15–17.
-
+- Seeburg Wall-O-Matic Type 3W-1 Service Manual, pp. 2–11, Figures 2 and 15–17.

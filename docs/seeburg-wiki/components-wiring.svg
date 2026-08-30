@@ -63,7 +63,7 @@
     <text class="label" x="850" y="254">Pico 2 W</text>
     <text class="small" x="850" y="286">Module VCC → Pico pin 36</text><text class="small" x="850" y="310">Module GND → Pico GND</text><text class="small" x="850" y="334">Module OUT → GPIO</text>
     <text class="small" x="850" y="358">capture and decode</text>
-    <text class="tiny" x="835" y="408">Logic-side pull-up, LED,</text><text class="tiny" x="835" y="426">optional 100 nF filter.</text>
+    <text class="tiny" x="835" y="408">Logic-side pull-up and LED.</text><text class="tiny" x="835" y="426">No smoothing capacitor.</text>
     <text class="tiny" x="835" y="458">No 25 VAC on breadboard.</text>
     <circle class="chip" cx="815" cy="300" r="6"/>
 

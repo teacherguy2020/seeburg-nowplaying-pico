@@ -77,7 +77,7 @@ The 30-pin experiment should therefore be treated as a separate reverse-engineer
 1. Leave the working Data Sync wiring untouched.
 2. Identify the two Wallbox signal wires at the existing connection point. Confirm that they are the 3W1 `SIGNAL` and `COMMON` pair, not the 25 VAC motor/lighting pair.
 3. Add a removable parallel branch using a covered terminal block or Y-breakout.
-4. Feed that branch into the isolated AC input stage described in the [interface schematic](interface-schematic.md). Use a bridge rectifier or AC-rated optocoupler as appropriate for the measured waveform.
+4. Feed that branch into the isolated AC input stage described in the [as-built wiring record](as-built-wiring.md). The final project circuit uses a DB107 bridge rectifier and EL817/PC817 optocoupler; the alternatives below are historical investigation notes.
 5. Feed the isolated pulse output to the Pico. The Pico should decode the two pulse groups and emit the normalized selection, such as `B3` or slot `13`.
 6. Compare the Pico’s decoded slot with the song selected by the Data Sync adapter. Use the Data Sync unit as a convenient known-good reference during commissioning.
 7. Once the mapping is verified, have the Pico submit the playlist number directly to `POST /integrations/seeburg/selection` on `10.0.0.4:3101`. Use the endpoint's `dryRun` mode during commissioning; normal requests clear/start when stopped or paused and append without interruption when already playing.

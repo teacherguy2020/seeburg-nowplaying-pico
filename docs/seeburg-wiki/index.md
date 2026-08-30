@@ -6,25 +6,28 @@ topics:
   - wallbox
   - hardware
   - now-playing
-confidence: medium
-updated: 2026-08-28 America/Chicago
+confidence: high
+updated: 2026-08-29 America/Chicago
 ---
 
 # Seeburg Wallbox Project
 
 This wiki documents the investigation and implementation of a physical Seeburg Wallbox input for the Now Playing music system.
 
-The supplied source manual is [`3w1.pdf`](/Users/brianwis/Public/3w1.pdf), a 33-page Seeburg service manual for the Wall-O-Matic Type 3W-1.
+The project uses a Seeburg Wall-O-Matic Type 3W-1 and a Raspberry Pi Pico 2 W
+to decode Wallbox selections and submit them to the Now Playing music system.
 
 ## Project goal
 
-Allow a person to make a selection on the Wallbox—eventually represented as a code such as `B3`—and have the corresponding song appended to the Now Playing cue.
+Allow a person to make a selection on the Wallbox, decode it to a code such as
+`B3`, and have the corresponding position in `Seeburg Playlist` played or
+appended through the Now Playing API.
 
 ## Current architectural model
 
 1. The Wallbox mechanism changes electrical contacts.
 2. An isolated input stage observes those contacts.
-3. A small real-time controller debounces and decodes the contact sequence.
+3. The Pico 2 W captures and decodes the rectified-AC contact waveform.
 4. The Pico converts the validated selection to a playlist position from 1 through 100.
 5. The Pico submits that number directly to the Now Playing app-host API.
 6. Now Playing clears and starts the selected track when stopped or paused, and appends it without interruption when playback is active.
@@ -32,23 +35,19 @@ Allow a person to make a selection on the Wallbox—eventually represented as a 
 ## Pages
 
 - [Architecture](architecture.md)
-- [Hardware reverse engineering](hardware-reverse-engineering.md)
+- [Decoder](decoder.md)
+- [Hardware reverse engineering](hardware-reverse-engineering.md) *(historical/background)*
 - [Software integration](software-integration.md)
-- [Build log](build-log.md)
+- [Build log](build-log.md) *(historical record)*
 - [Parts list](parts-list.md)
-- [Interface schematic](interface-schematic.svg)
 - [Components and wiring graphic](components-wiring.svg)
-- [Step-by-step wiring procedure](wiring-build-procedure.md)
-- [Data Sync Wallbox to iPod adaptation](datasync-adaptation.md)
-- [Isolated input stage](isolated-input-stage.md)
 - [As-built wiring record](as-built-wiring.md)
+- [Data Sync Wallbox to iPod adaptation](datasync-adaptation.md) *(historical/background)*
 
-The diagrams are included as standalone SVG images so GitHub can render them
-directly:
+The as-built wiring diagram is included as a standalone SVG image so GitHub can
+render it directly:
 
 ![Components and wiring diagram](components-wiring.svg)
-
-![Interface schematic](interface-schematic.svg)
 
 ## Confirmed from the 3W-1 manual
 
@@ -59,8 +58,7 @@ directly:
 - The first pulse train contains 2–21 pulses and encodes the number plus the first/second letter of a pair; the second contains 1–5 pulses and identifies the letter pair (`A/B`, `C/D`, `E/F`, `G/H`, or `J/K`).
 - Pulses are approximately 1/25 second apart, with approximately 1/5 second between pulse groups.
 - The motor is specified at 24 RPM, with 21–26 RPM acceptable. A slow motor can produce incorrect pulse timing.
-- Schematics differ by serial range: below 2303, 2303–16646, and above 16645. The unit’s serial number must be recorded before designing an interface.
-- The project’s Wallbox is stamped serial 25050, placing it in the later, above-16645 variant; see [`wallbox-serial.jpg`](/Users/brianwis/Public/wallbox-serial.jpg).
+- Schematics differ by serial range: below 2303, 2303–16646, and above 16645. The project’s Wallbox is stamped serial 25050, placing it in the later, above-16645 variant.
 
 These findings come from manual pages 2–11, especially Figures 2, 15, 16, and 17.
 
@@ -75,7 +73,10 @@ rectified-AC timing is decoded in software rather than smoothed in hardware.
 
 ## Evidence rule
 
-Claims about the Wallbox electrical behavior remain provisional until supported by the exact model documentation, photographs, continuity measurements, or captured contact traces. Do not treat a generic Seeburg schematic as proof for a different model.
+The final wiring and decoder behavior are specific to the measured serial-25050
+Wallbox and the particular EL817/PC817 module used. Reproduction requires
+verifying the Wallbox signal, module resistor values, terminal labels, and
+isolation before applying power.
 
 ## Relationship to Now Playing
 

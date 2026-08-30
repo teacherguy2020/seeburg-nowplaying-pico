@@ -89,7 +89,4 @@ This interface was developed from the measured behavior of this particular 3W-1 
 
 - [Architecture](architecture.md)
 - [Software integration](software-integration.md)
-- [Wiring build procedure](wiring-build-procedure.md)
 - [Parts list](parts-list.md)
-- [Isolated input stage](isolated-input-stage.md)
-
