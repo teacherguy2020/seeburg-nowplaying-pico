@@ -35,7 +35,6 @@ Allow a person to make a selection on the Wallbox—eventually represented as a 
 - [Hardware reverse engineering](hardware-reverse-engineering.md)
 - [Selection catalog](selection-catalog.md)
 - [Software integration](software-integration.md)
-- [Open questions](open-questions.md)
 - [Build log](build-log.md)
 - [Parts list](parts-list.md)
 - [Interface schematic](interface-schematic.svg)
