@@ -17,6 +17,8 @@ LIVE MODE:
 """
 
 from machine import Pin
+import machine
+import os
 import time
 import gc
 
@@ -39,10 +41,14 @@ LEFT_DIRECT_GAP_MAX_MS = 85
 WEB_PORT = 80
 WEB_REFRESH_SECONDS = 2
 WIFI_RETRY_MS = 10000
-API_HOST = "10.0.0.4"
-API_PORT = 3101
+API_HOST = "10.0.0.65"
+API_PORT = 3103
 API_PATH = "/integrations/seeburg/selection"
 API_TIMEOUT_SECONDS = 5
+OTA_PATH = "/ota"
+OTA_TEMP_FILE = "main.new.py"
+OTA_BACKUP_FILE = "main.backup.py"
+OTA_MAX_BYTES = 64 * 1024
 
 LETTER_PAIRS = {
     1: ("A", "B"),
@@ -86,6 +92,8 @@ latest_api_status = None
 latest_api_body = None
 latest_api_error = None
 latest_status = "Waiting for first Wallbox activity"
+ota_reboot_pending = False
+last_ota_status = "not used"
 
 
 def edge_irq(pin):
@@ -550,6 +558,111 @@ def html_escape(value):
     return str(value).replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
 
 
+def send_all(client, data):
+    sent_total = 0
+    while sent_total < len(data):
+        sent = client.send(data[sent_total:])
+        if not sent:
+            raise OSError("socket send failed")
+        sent_total += sent
+
+
+def http_response(client, status, body, content_type="application/json"):
+    payload = body.encode()
+    header = (
+        "HTTP/1.1 {}\r\n"
+        "Content-Type: {}; charset=utf-8\r\n"
+        "Content-Length: {}\r\n"
+        "Cache-Control: no-store\r\n"
+        "Connection: close\r\n\r\n"
+    ).format(status, content_type, len(payload))
+    send_all(client, header.encode())
+    send_all(client, payload)
+
+
+def safe_remove(path):
+    try:
+        os.remove(path)
+    except OSError:
+        pass
+
+
+def read_request(client):
+    data = b""
+    while b"\r\n\r\n" not in data and len(data) <= 4096:
+        chunk = client.recv(512)
+        if not chunk:
+            break
+        data += chunk
+
+    marker = data.find(b"\r\n\r\n")
+    if marker < 0 or marker > 4096:
+        raise ValueError("incomplete or oversized HTTP headers")
+
+    header_bytes = data[:marker]
+    initial_body = data[marker + 4:]
+    lines = header_bytes.split(b"\r\n")
+    request_parts = lines[0].decode().split()
+    if len(request_parts) != 3:
+        raise ValueError("malformed HTTP request line")
+
+    headers = {}
+    for line in lines[1:]:
+        if b":" not in line:
+            raise ValueError("malformed HTTP header")
+        name, value = line.split(b":", 1)
+        headers[name.decode().lower().strip()] = value.decode().strip()
+
+    try:
+        content_length = int(headers.get("content-length", "0"))
+    except ValueError:
+        raise ValueError("invalid Content-Length")
+    if content_length < 0 or content_length > OTA_MAX_BYTES:
+        raise ValueError("upload exceeds {} bytes".format(OTA_MAX_BYTES))
+
+    return request_parts[0], request_parts[1], headers, initial_body, content_length
+
+
+def receive_ota_file(client, initial_body, content_length):
+    if len(initial_body) > content_length:
+        raise ValueError("request body exceeds Content-Length")
+
+    received = 0
+    with open(OTA_TEMP_FILE, "wb") as upload:
+        if initial_body:
+            upload.write(initial_body)
+            received = len(initial_body)
+        while received < content_length:
+            chunk = client.recv(min(1024, content_length - received))
+            if not chunk:
+                raise ValueError("upload ended early ({}/{})".format(received, content_length))
+            upload.write(chunk)
+            received += len(chunk)
+        upload.flush()
+
+
+def install_ota_file():
+    with open(OTA_TEMP_FILE, "rb") as upload:
+        source = upload.read()
+    compile(source, OTA_TEMP_FILE, "exec")
+
+    safe_remove(OTA_BACKUP_FILE)
+    os.rename("main.py", OTA_BACKUP_FILE)
+    try:
+        os.rename(OTA_TEMP_FILE, "main.py")
+    except Exception:
+        os.rename(OTA_BACKUP_FILE, "main.py")
+        raise
+
+
+def get_ota_token():
+    try:
+        from secrets import OTA_TOKEN
+        return OTA_TOKEN
+    except ImportError:
+        return ""
+
+
 def state_name(value):
     return "HIGH" if value else "LOW"
 
@@ -584,7 +697,8 @@ def build_status_page(wlan, signal):
         "<b>GP15:</b> {}<br>".format(state_name(signal.value())),
         "<b>Capture active:</b> {}<br>".format("YES" if capture_active else "NO"),
         "<b>Current raw edges:</b> {}<br>".format(edge_count),
-        "<b>Status:</b> {}</div>".format(html_escape(latest_status)),
+        "<b>Status:</b> {}<br>".format(html_escape(latest_status)),
+        "<b>OTA:</b> {}</div>".format(html_escape(last_ota_status)),
         "<h2>Decode</h2><div class='box'>",
     ]
 
@@ -661,6 +775,7 @@ def start_web_server():
 
 
 def service_web_server(server, wlan, signal):
+    global ota_reboot_pending, last_ota_status
     if server is None:
         return
     client = None
@@ -670,23 +785,36 @@ def service_web_server(server, wlan, signal):
         return
     try:
         try:
-            client.settimeout(0.5)
+            client.settimeout(5)
         except Exception:
             pass
-        try:
-            client.recv(512)
-        except Exception:
-            pass
-        page = build_status_page(wlan, signal)
-        header = "HTTP/1.1 200 OK\r\nContent-Type: text/html; charset=utf-8\r\nCache-Control: no-store\r\nConnection: close\r\n\r\n"
-        client.send(header.encode())
-        data = page.encode()
-        offset = 0
-        while offset < len(data):
-            sent = client.send(data[offset:offset + 1024])
-            if not sent:
-                break
-            offset += sent
+        method, request_path, headers, initial_body, content_length = read_request(client)
+        path = request_path.split("?", 1)[0]
+
+        if path == OTA_PATH and method == "POST":
+            ota_token = get_ota_token()
+            supplied_auth = headers.get("authorization", "")
+            if not ota_token:
+                last_ota_status = "disabled: OTA_TOKEN missing"
+                http_response(client, "503 Service Unavailable", '{"error":"OTA disabled"}')
+            elif supplied_auth != "Bearer " + ota_token:
+                last_ota_status = "rejected: unauthorized"
+                http_response(client, "401 Unauthorized", '{"error":"unauthorized"}')
+            else:
+                try:
+                    receive_ota_file(client, initial_body, content_length)
+                    install_ota_file()
+                    last_ota_status = "installed; reboot pending"
+                    http_response(client, "200 OK", '{"ok":true,"rebooting":true}')
+                    ota_reboot_pending = True
+                except Exception as error:
+                    safe_remove(OTA_TEMP_FILE)
+                    last_ota_status = "failed: {}".format(error)
+                    print("OTA ERROR:", error)
+                    http_response(client, "400 Bad Request", '{"error":"OTA rejected"}')
+        else:
+            page = build_status_page(wlan, signal)
+            http_response(client, "200 OK", page, "text/html")
     except Exception as error:
         print("WEB ERROR:", error)
     finally:
@@ -734,6 +862,11 @@ while True:
             process_capture(captured_times, captured_states, overflow)
 
     service_web_server(web_server, wlan, signal)
+
+    if ota_reboot_pending:
+        print("OTA installed; rebooting")
+        time.sleep_ms(200)
+        machine.reset()
 
     now = time.ticks_ms()
     if ticks_delta(now, last_wifi_retry_ms) >= WIFI_RETRY_MS:

@@ -7,7 +7,7 @@ topics:
   - now-playing
   - mpd
 confidence: high
-updated: 2026-08-29 America/Chicago
+updated: 2026-11-11 America/Chicago
 ---
 
 # Software Integration
@@ -47,10 +47,10 @@ inside the edge handler. Credentials are kept in the untracked `secrets.py`.
 
 ## Now Playing responsibilities
 
-The live endpoint is:
+The live endpoint is exposed through the restricted hardware gateway:
 
 ```http
-POST http://10.0.0.4:3101/integrations/seeburg/selection
+POST http://10.0.0.65:3103/integrations/seeburg/selection
 Content-Type: application/json
 X-Track-Key: <existing Now Playing track key>
 
@@ -92,6 +92,19 @@ Both API routes require the same track-key header. These tools verify the
 current number-to-file mapping without embedding filenames or track metadata in
 the Pico.
 
+## OTA firmware updates
+
+The deployed Pico firmware exposes `POST /ota` on its diagnostic HTTP server.
+The request must include `Authorization: Bearer <OTA_TOKEN>` and the complete
+MicroPython source as the request body. The firmware rejects uploads larger
+than 64 KiB, compiles the staged file before installation, keeps the previous
+firmware as `main.backup.py`, and reboots after a successful `200` response.
+
+An incorrect or missing bearer token returns `401`; if `OTA_TOKEN` is absent
+from `secrets.py`, OTA is disabled and returns `503`. Keep both the track key
+and OTA token out of Git. USB/MicroPico is the recovery path if the Pico does
+not return after reboot.
+
 ## Related documentation
 
 - [Decoder](decoder.md)
@@ -99,4 +112,4 @@ the Pico.
 - [Architecture](architecture.md)
 - [Now Playing project](https://github.com/teacherguy2020/now-playing)
 
-Last updated: 2026-08-29 America/Chicago
+Last updated: 2026-11-11 America/Chicago

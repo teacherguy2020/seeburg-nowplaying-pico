@@ -25,7 +25,8 @@ is needed.
 
 - Device: Raspberry Pi Pico 2 W
 - Current DHCP address: `10.0.0.118`
-- Now Playing API: `POST /integrations/seeburg/selection`
+- Now Playing hardware gateway: `10.0.0.65:3103`
+- Now Playing API: `POST http://10.0.0.65:3103/integrations/seeburg/selection`
 - API payload: `{"number": 1}` through `{"number": 100}`
 
 The Pico sends a playlist number. The Now Playing API validates the request and
@@ -46,9 +47,39 @@ GND.**
 
 ## Local setup
 
-Copy `secrets.example.py` to `secrets.py` and fill in the Wi-Fi credentials.
-Also fill in `TRACK_KEY` with the existing Now Playing API key. `secrets.py` is
-ignored by Git and must not be committed.
+Copy `secrets.example.py` to `secrets.py` and fill in the Wi-Fi credentials,
+the existing `TRACK_KEY`, and a long random `OTA_TOKEN`. `secrets.py` is
+ignored by Git and must not be committed. Do not reuse the track key as the
+OTA token.
+
+## OTA updates
+
+The firmware accepts a complete `main.py` replacement at `POST /ota` when the
+request includes:
+
+```http
+Authorization: Bearer <OTA_TOKEN>
+Content-Type: text/plain
+```
+
+The upload is limited to 64 KiB, compiled before installation, staged through
+`main.new.py`, and preserves the previous firmware as `main.backup.py`. A
+successful upload returns `200` and reboots the Pico. Missing or incorrect
+authorization returns `401`; an absent token disables OTA and returns `503`.
+
+Example, with the token supplied by the local shell rather than saved in the
+command history:
+
+```sh
+curl --fail --data-binary @main.py \
+  -H "Authorization: Bearer ${SEEBURG_OTA_TOKEN}" \
+  -H 'Content-Type: text/plain' \
+  http://10.0.0.118/ota
+```
+
+After an OTA update, wait for Wi-Fi to reconnect and confirm the diagnostic
+page is available. The page reports the last OTA result without displaying the
+token. USB/MicroPico remains the recovery path if an update fails.
 
 The firmware is configured with `MODE = "LIVE"`. Before connecting the
 Wallbox, verify the playlist mapping with `GET /integrations/seeburg/playlist`

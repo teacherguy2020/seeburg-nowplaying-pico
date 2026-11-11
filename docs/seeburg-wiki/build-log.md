@@ -36,3 +36,19 @@ updated: 2026-08-28 America/Chicago
 - Clarified that RECORD and DRY_RUN are commissioning documentation/API capabilities, not runtime modes in the final Pico `main.py`.
 
 Last updated: 2026-08-29 America/Chicago
+
+## 2026-11-11
+
+- Updated the deployed Pico API target from the original local Now Playing
+  listener to the restricted hardware gateway at `10.0.0.65:3103`.
+- Installed the updated `main.py` over USB/MicroPico and preserved the existing
+  Wi-Fi credentials and `TRACK_KEY`.
+- Added authenticated OTA support at `POST /ota`. The device uses a separate
+  untracked `OTA_TOKEN`; uploads are syntax-checked, staged, backed up as
+  `main.backup.py`, and followed by a reboot.
+- Verified the OTA contract: unauthenticated requests return `401`, an
+  authorized upload returns `200`, the Pico reboots, and the on-device
+  `main.py` matches the deployed source. The diagnostic page returned at
+  `10.0.0.118` after reboot.
+
+Last updated: 2026-11-11 America/Chicago
