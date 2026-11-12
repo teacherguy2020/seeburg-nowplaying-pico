@@ -52,3 +52,13 @@ Last updated: 2026-08-29 America/Chicago
   `10.0.0.118` after reboot.
 
 Last updated: 2026-11-11 America/Chicago
+
+## 2026-11-12
+
+- Confirmed the private hardware gateway is now `10.0.0.35:3103`.
+- Re-sent the current `main.py` through authenticated OTA. The Pico returned
+  `200 OK`, rebooted, and its diagnostic page returned at `10.0.0.118`.
+- The source and active documentation now use `10.0.0.35:3103`. No playlist
+  selection was sent during this verification.
+
+Last updated: 2026-11-12 America/Chicago

@@ -50,7 +50,7 @@ inside the edge handler. Credentials are kept in the untracked `secrets.py`.
 The live endpoint is exposed through the restricted hardware gateway:
 
 ```http
-POST http://10.0.0.65:3103/integrations/seeburg/selection
+POST http://10.0.0.35:3103/integrations/seeburg/selection
 Content-Type: application/json
 X-Track-Key: <existing Now Playing track key>
 

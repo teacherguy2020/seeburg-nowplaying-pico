@@ -40,7 +40,14 @@ existing `X-Track-Key` authentication header:
 
 ### Now Playing integration
 
-The live route is `POST /integrations/seeburg/selection` on the Now Playing Pi at `10.0.0.4:3101`. It accepts a playlist number from 1 through 100 and resolves that position against the saved `Seeburg Playlist`. If MPD is not playing, the route clears the live queue, adds the selected file, and starts playback. If MPD is already playing, it appends the selected file and leaves playback uninterrupted. `dryRun: true` resolves the selection without changing the queue. `GET /integrations/seeburg/playlist` exposes the current number-to-file mapping.
+The live route is `POST /integrations/seeburg/selection` on the restricted
+hardware gateway at `10.0.0.35:3103`. It accepts a playlist number from 1
+through 100 and resolves that position against the saved `Seeburg Playlist`.
+If MPD is not playing, the route clears the live queue, adds the selected file,
+and starts playback. If MPD is already playing, it appends the selected file
+and leaves playback uninterrupted. `dryRun: true` resolves the selection
+without changing the queue. `GET /integrations/seeburg/playlist` exposes the
+current number-to-file mapping.
 
 The Now Playing API remains the queue authority and requires the existing Now Playing track key. The Seeburg project uses that existing service rather than an independent MPD controller.
 

@@ -114,7 +114,7 @@ Now Playing:
 
 ```http
 POST /integrations/seeburg/selection
-Host: 10.0.0.4:3101
+Host: 10.0.0.35:3103
 Content-Type: application/json
 X-Track-Key: <TRACK_KEY>
 
