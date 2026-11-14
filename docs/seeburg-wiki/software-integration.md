@@ -98,8 +98,9 @@ Physical captures remain in `MODE = "LIVE"`. The diagnostic page has a separate
 letter bank and number bank for sending an explicit test selection through the
 same authenticated API. Pause the page's two-second auto-refresh before
 choosing the letter and number; resume it when finished. Clicking a number is
-the action that sends the test selection. Test requests redirect back to `/`
-after handling, preventing the page's auto-refresh from repeating a selection.
+the action that sends the test selection. Letter selection is client-side, so
+it does not reload the page. After both controls are highlighted, the test
+request redirects back to `/`, preventing auto-refresh from repeating it.
 
 ## OTA firmware updates
 

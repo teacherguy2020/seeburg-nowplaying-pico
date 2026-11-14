@@ -770,7 +770,7 @@ def build_status_page(wlan, signal):
         .mono{font-family:Menlo,Monaco,Consolas,monospace;white-space:pre-wrap;word-break:break-word;font-size:13px}
         table{width:100%;border-collapse:collapse}th,td{text-align:left;padding:6px;border-bottom:1px solid #444}
         .bank{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
-        .button{display:inline-block;background:#444;color:#fff;text-decoration:none;padding:10px 14px;border-radius:7px;min-width:26px;text-align:center}
+        .button{display:inline-block;background:#444;color:#fff;text-decoration:none;border:0;padding:10px 14px;border-radius:7px;min-width:26px;text-align:center;cursor:pointer;font:inherit}
         .button.selected{background:#2369a8}.button:active{background:#2f91d0}
         </style></head><body>""",
         "<h1>Seeburg 3W-1</h1><div>Decoder / LIVE Queue Integration</div>",
@@ -808,7 +808,8 @@ def build_status_page(wlan, signal):
     parts.append("</div>")
 
     parts.append("<h2>Test selection</h2><div class='box'>")
-    parts.append("<b>Selected letter:</b> {}<br>".format(html_escape(selected_test_letter)))
+    parts.append("<b>Selected letter:</b> <span id='selected-letter'>{}</span><br>".format(html_escape(selected_test_letter)))
+    parts.append("<b>Selected number:</b> <span id='selected-number'>{}</span><br>".format(html_escape(selected_test_number)))
     if auto_refresh_enabled:
         parts.append("<b>Auto-refresh:</b> ON &mdash; <a href='/test?pause=1'>Pause auto-refresh</a><br>")
     else:
@@ -817,11 +818,11 @@ def build_status_page(wlan, signal):
     parts.append("<p><b>Letter bank</b></p><div class='bank'>")
     for letter in LETTERS:
         selected = " selected" if letter == selected_test_letter else ""
-        parts.append("<a class='button{}' href='/test?letter={}'>{}</a>".format(selected, letter, letter))
+        parts.append("<button type='button' class='button{} letter-button' data-letter='{}' onclick='selectLetter(\"{}\")'>{}</button>".format(selected, letter, letter, letter))
     parts.append("</div><p><b>Number bank</b></p><div class='bank'>")
     for number in range(1, 11):
         selected = " selected" if number == selected_test_number else ""
-        parts.append("<a class='button{}' href='/test?number={}'>{}</a>".format(selected, number, number))
+        parts.append("<button type='button' class='button{} number-button' data-number='{}' onclick='sendNumber({})'>{}</button>".format(selected, number, number, number))
     parts.append("</div></div>")
 
     parts.append("<h2>Now Playing API</h2><div class='box'>")
@@ -854,7 +855,37 @@ def build_status_page(wlan, signal):
     if latest_capture_times:
         parts.append("<h2>Raw Intervals</h2><div class='box mono'>{}</div>".format(html_escape(", ".join(str(v) for v in get_intervals(latest_capture_times)))))
 
-    parts.append("<p style='color:#888;margin-top:28px'>Auto-refresh every {} seconds. LIVE mode.</p></body></html>".format(WEB_REFRESH_SECONDS))
+    parts.append("""<script>
+var selectedLetter = "";
+var testSending = false;
+function selectLetter(letter) {
+    if (testSending) return;
+    selectedLetter = letter;
+    document.getElementById('selected-letter').textContent = letter;
+    document.getElementById('selected-number').textContent = '-';
+    document.querySelectorAll('.letter-button').forEach(function(button) {
+        button.classList.toggle('selected', button.getAttribute('data-letter') === letter);
+    });
+    document.querySelectorAll('.number-button').forEach(function(button) {
+        button.classList.remove('selected');
+    });
+}
+function sendNumber(number) {
+    if (testSending) return;
+    if (!selectedLetter) {
+        document.getElementById('selected-letter').textContent = 'Choose a letter first';
+        return;
+    }
+    testSending = true;
+    document.getElementById('selected-number').textContent = number;
+    document.querySelectorAll('.number-button').forEach(function(button) {
+        button.classList.toggle('selected', button.getAttribute('data-number') === String(number));
+    });
+    window.setTimeout(function() {
+        window.location.href = '/test?letter=' + encodeURIComponent(selectedLetter) + '&number=' + number;
+    }, 120);
+}
+</script><p style='color:#888;margin-top:28px'>Auto-refresh every """ + str(WEB_REFRESH_SECONDS) + """ seconds. LIVE mode.</p></body></html>""")
     return "".join(parts)
 
 

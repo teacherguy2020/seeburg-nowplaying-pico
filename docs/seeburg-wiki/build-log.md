@@ -75,5 +75,7 @@ Last updated: 2026-11-12 America/Chicago
   and returned its diagnostic page.
 - Fixed the test-action response to redirect to `/` after handling. This
   prevents the two-second auto-refresh from re-submitting the same test URL.
+- Corrected the letter bank to use client-side selection. A letter click no
+  longer reloads the page; only the completed letter-plus-number action submits.
 
 Last updated: 2026-11-13 America/Chicago
