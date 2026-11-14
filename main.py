@@ -94,6 +94,8 @@ latest_api_error = None
 latest_status = "Waiting for first Wallbox activity"
 ota_reboot_pending = False
 last_ota_status = "not used"
+selected_test_letter = "A"
+auto_refresh_enabled = True
 
 
 def edge_irq(pin):
@@ -587,6 +589,65 @@ def safe_remove(path):
         pass
 
 
+def query_value(request_path, name):
+    if "?" not in request_path:
+        return None
+    query = request_path.split("?", 1)[1]
+    for item in query.split("&"):
+        parts = item.split("=", 1)
+        if len(parts) == 2 and parts[0] == name:
+            return parts[1]
+    return None
+
+
+def handle_test_request(request_path):
+    global selected_test_letter
+    global auto_refresh_enabled
+    global latest_wallbox_code, latest_playlist_number
+    global latest_api_attempted, latest_api_ok, latest_api_status
+    global latest_api_body, latest_api_error, latest_status
+
+    if query_value(request_path, "pause") == "1":
+        auto_refresh_enabled = False
+    elif query_value(request_path, "resume") == "1":
+        auto_refresh_enabled = True
+
+    requested_letter = query_value(request_path, "letter")
+    if requested_letter in LETTERS:
+        selected_test_letter = requested_letter
+
+    requested_number = query_value(request_path, "number")
+    if requested_number is None:
+        latest_status = "Test letter selected: {}".format(selected_test_letter)
+        return
+
+    try:
+        number = int(requested_number)
+    except ValueError:
+        latest_status = "Test rejected: number must be 1..10"
+        return
+    if not 1 <= number <= 10:
+        latest_status = "Test rejected: number must be 1..10"
+        return
+
+    wallbox_code = "{}{}".format(selected_test_letter, number)
+    playlist_number = LETTERS.index(selected_test_letter) * 10 + number
+    latest_wallbox_code = wallbox_code
+    latest_playlist_number = playlist_number
+    api_result = post_live_selection(playlist_number)
+    latest_api_attempted = api_result["attempted"]
+    latest_api_ok = api_result["ok"]
+    latest_api_status = api_result["status"]
+    latest_api_body = api_result["body"]
+    latest_api_error = api_result["error"]
+    latest_status = (
+        "TEST SUCCESS: {}".format(wallbox_code)
+        if latest_api_ok
+        else "TEST API ERROR: {}".format(wallbox_code)
+    )
+    gc.collect()
+
+
 def read_request(client):
     data = b""
     while b"\r\n\r\n" not in data and len(data) <= 4096:
@@ -678,7 +739,7 @@ def build_status_page(wlan, signal):
     parts = [
         "<!doctype html><html><head><meta charset='utf-8'>",
         "<meta name='viewport' content='width=device-width,initial-scale=1'>",
-        "<meta http-equiv='refresh' content='{}'>".format(WEB_REFRESH_SECONDS),
+        "<meta http-equiv='refresh' content='{}'>".format(WEB_REFRESH_SECONDS) if auto_refresh_enabled else "",
         "<title>Seeburg 3W-1</title>",
         """<style>
         body{font-family:-apple-system,BlinkMacSystemFont,Arial,sans-serif;margin:18px;background:#111;color:#eee}
@@ -688,10 +749,13 @@ def build_status_page(wlan, signal):
         .good{color:#8ee59b}.warn{color:#ffd166}.bad{color:#ff8a8a}
         .mono{font-family:Menlo,Monaco,Consolas,monospace;white-space:pre-wrap;word-break:break-word;font-size:13px}
         table{width:100%;border-collapse:collapse}th,td{text-align:left;padding:6px;border-bottom:1px solid #444}
+        .bank{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+        .button{display:inline-block;background:#444;color:#fff;text-decoration:none;padding:10px 14px;border-radius:7px;min-width:26px;text-align:center}
+        .button.selected{background:#2369a8}.button:active{background:#2f91d0}
         </style></head><body>""",
         "<h1>Seeburg 3W-1</h1><div>Decoder / LIVE Queue Integration</div>",
         "<h2>Status</h2><div class='box'>",
-        "<b>Mode:</b> LIVE<br>",
+        "<b>Mode:</b> {}<br>".format(MODE),
         "<b>Wi-Fi:</b> {}<br>".format(wifi_status),
         "<b>IP:</b> {}<br>".format(ip_address),
         "<b>GP15:</b> {}<br>".format(state_name(signal.value())),
@@ -722,6 +786,22 @@ def build_status_page(wlan, signal):
     else:
         parts.append("<div class='bad'><b>Decode rejected</b></div><br>{}".format(html_escape(latest_decode_reason)))
     parts.append("</div>")
+
+    parts.append("<h2>Test selection</h2><div class='box'>")
+    parts.append("<b>Selected letter:</b> {}<br>".format(html_escape(selected_test_letter)))
+    if auto_refresh_enabled:
+        parts.append("<b>Auto-refresh:</b> ON &mdash; <a href='/test?pause=1'>Pause auto-refresh</a><br>")
+    else:
+        parts.append("<b>Auto-refresh:</b> PAUSED &mdash; <a href='/test?resume=1'>Resume auto-refresh</a><br>")
+    parts.append("<div class='warn'>Choose a letter, then a number to send an additional test selection. Physical Wallbox selections remain LIVE.</div>")
+    parts.append("<p><b>Letter bank</b></p><div class='bank'>")
+    for letter in LETTERS:
+        selected = " selected" if letter == selected_test_letter else ""
+        parts.append("<a class='button{}' href='/test?letter={}'>{}</a>".format(selected, letter, letter))
+    parts.append("</div><p><b>Number bank</b></p><div class='bank'>")
+    for number in range(1, 11):
+        parts.append("<a class='button' href='/test?number={}'>{}</a>".format(number, number))
+    parts.append("</div></div>")
 
     parts.append("<h2>Now Playing API</h2><div class='box'>")
     if not latest_api_attempted:
@@ -791,7 +871,11 @@ def service_web_server(server, wlan, signal):
         method, request_path, headers, initial_body, content_length = read_request(client)
         path = request_path.split("?", 1)[0]
 
-        if path == OTA_PATH and method == "POST":
+        if path == "/test" and method == "GET":
+            handle_test_request(request_path)
+            page = build_status_page(wlan, signal)
+            http_response(client, "200 OK", page, "text/html")
+        elif path == OTA_PATH and method == "POST":
             ota_token = get_ota_token()
             supplied_auth = headers.get("authorization", "")
             if not ota_token:

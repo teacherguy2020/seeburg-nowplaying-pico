@@ -85,3 +85,9 @@ The firmware is configured with `MODE = "LIVE"`. Before connecting the
 Wallbox, verify the playlist mapping with `GET /integrations/seeburg/playlist`
 or a `dryRun` API request. A valid physical selection then changes playback
 according to the stopped-versus-playing behavior above.
+
+The diagnostic page also provides an additional test-selection interface. Pause
+auto-refresh before testing, choose a letter from the letter bank, then choose
+a number from the number bank. That explicit page action sends the resulting
+selection through the same authenticated API; physical Wallbox captures remain
+LIVE throughout.

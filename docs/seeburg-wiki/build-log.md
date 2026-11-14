@@ -62,3 +62,16 @@ Last updated: 2026-11-11 America/Chicago
   selection was sent during this verification.
 
 Last updated: 2026-11-12 America/Chicago
+
+## 2026-11-13
+
+- Kept physical Wallbox operation in `MODE = "LIVE"`.
+- Added diagnostic-page letter and number banks for explicit additional test
+  selections using the existing authenticated API.
+- Added a page-level auto-refresh toggle so the diagnostic page can be paused
+  while choosing and sending tests. Verified normal, paused, and resumed page
+  states without sending a selection.
+- Deployed the change through authenticated OTA and verified the Pico rebooted
+  and returned its diagnostic page.
+
+Last updated: 2026-11-13 America/Chicago

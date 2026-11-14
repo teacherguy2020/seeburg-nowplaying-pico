@@ -92,6 +92,14 @@ Both API routes require the same track-key header. These tools verify the
 current number-to-file mapping without embedding filenames or track metadata in
 the Pico.
 
+## Diagnostic-page test selections
+
+Physical captures remain in `MODE = "LIVE"`. The diagnostic page has a separate
+letter bank and number bank for sending an explicit test selection through the
+same authenticated API. Pause the page's two-second auto-refresh before
+choosing the letter and number; resume it when finished. Clicking a number is
+the action that sends the test selection.
+
 ## OTA firmware updates
 
 The deployed Pico firmware exposes `POST /ota` on its diagnostic HTTP server.
