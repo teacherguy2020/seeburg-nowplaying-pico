@@ -90,4 +90,5 @@ The diagnostic page also provides an additional test-selection interface. Pause
 auto-refresh before testing, choose a letter from the letter bank, then choose
 a number from the number bank. That explicit page action sends the resulting
 selection through the same authenticated API; physical Wallbox captures remain
-LIVE throughout.
+LIVE throughout. Each test action redirects back to the diagnostic root page so
+the automatic refresh can never repeat the same selection URL.

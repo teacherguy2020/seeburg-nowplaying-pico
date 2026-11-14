@@ -73,5 +73,7 @@ Last updated: 2026-11-12 America/Chicago
   states without sending a selection.
 - Deployed the change through authenticated OTA and verified the Pico rebooted
   and returned its diagnostic page.
+- Fixed the test-action response to redirect to `/` after handling. This
+  prevents the two-second auto-refresh from re-submitting the same test URL.
 
 Last updated: 2026-11-13 America/Chicago

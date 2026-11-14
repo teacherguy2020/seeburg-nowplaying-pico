@@ -94,7 +94,8 @@ latest_api_error = None
 latest_status = "Waiting for first Wallbox activity"
 ota_reboot_pending = False
 last_ota_status = "not used"
-selected_test_letter = "A"
+selected_test_letter = None
+selected_test_number = None
 auto_refresh_enabled = True
 
 
@@ -582,6 +583,17 @@ def http_response(client, status, body, content_type="application/json"):
     send_all(client, payload)
 
 
+def http_redirect(client, location):
+    header = (
+        "HTTP/1.1 303 See Other\r\n"
+        "Location: {}\r\n"
+        "Content-Length: 0\r\n"
+        "Cache-Control: no-store\r\n"
+        "Connection: close\r\n\r\n"
+    ).format(location)
+    send_all(client, header.encode())
+
+
 def safe_remove(path):
     try:
         os.remove(path)
@@ -602,6 +614,7 @@ def query_value(request_path, name):
 
 def handle_test_request(request_path):
     global selected_test_letter
+    global selected_test_number
     global auto_refresh_enabled
     global latest_wallbox_code, latest_playlist_number
     global latest_api_attempted, latest_api_ok, latest_api_status
@@ -615,6 +628,7 @@ def handle_test_request(request_path):
     requested_letter = query_value(request_path, "letter")
     if requested_letter in LETTERS:
         selected_test_letter = requested_letter
+        selected_test_number = None
 
     requested_number = query_value(request_path, "number")
     if requested_number is None:
@@ -629,7 +643,11 @@ def handle_test_request(request_path):
     if not 1 <= number <= 10:
         latest_status = "Test rejected: number must be 1..10"
         return
+    if selected_test_letter not in LETTERS:
+        latest_status = "Test rejected: choose a letter first"
+        return
 
+    selected_test_number = number
     wallbox_code = "{}{}".format(selected_test_letter, number)
     playlist_number = LETTERS.index(selected_test_letter) * 10 + number
     latest_wallbox_code = wallbox_code
@@ -645,6 +663,8 @@ def handle_test_request(request_path):
         if latest_api_ok
         else "TEST API ERROR: {}".format(wallbox_code)
     )
+    selected_test_letter = None
+    selected_test_number = None
     gc.collect()
 
 
@@ -800,7 +820,8 @@ def build_status_page(wlan, signal):
         parts.append("<a class='button{}' href='/test?letter={}'>{}</a>".format(selected, letter, letter))
     parts.append("</div><p><b>Number bank</b></p><div class='bank'>")
     for number in range(1, 11):
-        parts.append("<a class='button' href='/test?number={}'>{}</a>".format(number, number))
+        selected = " selected" if number == selected_test_number else ""
+        parts.append("<a class='button{}' href='/test?number={}'>{}</a>".format(selected, number, number))
     parts.append("</div></div>")
 
     parts.append("<h2>Now Playing API</h2><div class='box'>")
@@ -873,8 +894,9 @@ def service_web_server(server, wlan, signal):
 
         if path == "/test" and method == "GET":
             handle_test_request(request_path)
-            page = build_status_page(wlan, signal)
-            http_response(client, "200 OK", page, "text/html")
+            # Never leave a side-effecting test URL in the browser address bar:
+            # auto-refreshing /test?number=N would send the same selection again.
+            http_redirect(client, "/")
         elif path == OTA_PATH and method == "POST":
             ota_token = get_ota_token()
             supplied_auth = headers.get("authorization", "")
