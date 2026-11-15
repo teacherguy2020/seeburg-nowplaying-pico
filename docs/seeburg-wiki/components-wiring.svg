@@ -70,7 +70,7 @@
     <!-- Now Playing API and MPD service -->
     <rect class="box service" x="1115" y="125" width="155" height="225" rx="14"/>
     <text class="title" x="1135" y="170">Now Playing API</text>
-    <text class="small" x="1135" y="210">10.0.0.35:3103</text><text class="small" x="1135" y="236">playlist lookup</text><text class="small" x="1135" y="262">X-Track-Key auth</text><text class="small" x="1135" y="288">selection route</text>
+    <text class="small" x="1135" y="210">10.0.0.4:3103</text><text class="small" x="1135" y="236">playlist lookup</text><text class="small" x="1135" y="262">X-Track-Key auth</text><text class="small" x="1135" y="288">selection route</text>
     <text class="tiny" x="1135" y="324">direct Wi-Fi request</text>
     <rect class="box service" x="1115" y="420" width="155" height="150" rx="14"/>
     <text class="title" x="1135" y="465">moOde / MPD</text><text class="small" x="1135" y="505">resolve file</text><text class="small" x="1135" y="531">append track</text><text class="small" x="1135" y="557">to queue</text>

@@ -25,8 +25,8 @@ is needed.
 
 - Device: Raspberry Pi Pico 2 W
 - Current DHCP address: `10.0.0.118`
-- Now Playing hardware gateway: `10.0.0.35:3103`
-- Now Playing API: `POST http://10.0.0.35:3103/integrations/seeburg/selection`
+- Now Playing hardware gateway: `10.0.0.4:3103`
+- Now Playing API: `POST http://10.0.0.4:3103/integrations/seeburg/selection`
 - API payload: `{"number": 1}` through `{"number": 100}`
 
 The Pico sends a playlist number. The Now Playing API validates the request and

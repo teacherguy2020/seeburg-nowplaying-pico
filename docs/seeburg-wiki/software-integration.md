@@ -7,7 +7,7 @@ topics:
   - now-playing
   - mpd
 confidence: high
-updated: 2026-11-11 America/Chicago
+updated: 2026-11-14 America/Chicago
 ---
 
 # Software Integration
@@ -50,7 +50,7 @@ inside the edge handler. Credentials are kept in the untracked `secrets.py`.
 The live endpoint is exposed through the restricted hardware gateway:
 
 ```http
-POST http://10.0.0.35:3103/integrations/seeburg/selection
+POST http://10.0.0.4:3103/integrations/seeburg/selection
 Content-Type: application/json
 X-Track-Key: <existing Now Playing track key>
 
@@ -122,4 +122,4 @@ not return after reboot.
 - [Architecture](architecture.md)
 - [Now Playing project](https://github.com/teacherguy2020/now-playing)
 
-Last updated: 2026-11-11 America/Chicago
+Last updated: 2026-11-14 America/Chicago

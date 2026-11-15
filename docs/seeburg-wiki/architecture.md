@@ -6,7 +6,7 @@ topics:
   - integration
   - queue
 confidence: high
-updated: 2026-08-29 America/Chicago
+updated: 2026-11-14 America/Chicago
 ---
 
 # Architecture
@@ -41,7 +41,7 @@ existing `X-Track-Key` authentication header:
 ### Now Playing integration
 
 The live route is `POST /integrations/seeburg/selection` on the restricted
-hardware gateway at `10.0.0.35:3103`. It accepts a playlist number from 1
+hardware gateway at `10.0.0.4:3103`. It accepts a playlist number from 1
 through 100 and resolves that position against the saved `Seeburg Playlist`.
 If MPD is not playing, the route clears the live queue, adds the selected file,
 and starts playback. If MPD is already playing, it appends the selected file
@@ -58,4 +58,4 @@ The Now Playing API remains the queue authority and requires the existing Now Pl
 - Replacing the existing Now Playing queue authority
 - Assuming all Seeburg Wallboxes share one wiring scheme
 
-Last updated: 2026-08-29 America/Chicago
+Last updated: 2026-11-14 America/Chicago

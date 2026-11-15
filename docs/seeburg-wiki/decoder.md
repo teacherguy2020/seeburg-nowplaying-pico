@@ -7,7 +7,7 @@ topics:
   - pulse-timing
   - selections
 confidence: high
-updated: 2026-08-29 America/Chicago
+updated: 2026-11-14 America/Chicago
 ---
 
 # Seeburg Pulse Decoder
@@ -114,7 +114,7 @@ Now Playing:
 
 ```http
 POST /integrations/seeburg/selection
-Host: 10.0.0.35:3103
+Host: 10.0.0.4:3103
 Content-Type: application/json
 X-Track-Key: <TRACK_KEY>
 

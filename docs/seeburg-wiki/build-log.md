@@ -79,3 +79,11 @@ Last updated: 2026-11-12 America/Chicago
   longer reloads the page; only the completed letter-plus-number action submits.
 
 Last updated: 2026-11-13 America/Chicago
+
+## 2026-11-14
+
+- Changed the Pico's API target to the stable Now Playing host at
+  `10.0.0.4:3103`, preserving `POST /integrations/seeburg/selection`, LIVE
+  physical Wallbox behavior, and the existing on-device Wi-Fi, `TRACK_KEY`,
+  and `OTA_TOKEN` credentials.
+- Verified the Pico remains reachable at `10.0.0.118` before deployment.

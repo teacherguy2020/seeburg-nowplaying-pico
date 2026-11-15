@@ -7,7 +7,7 @@ topics:
   - hardware
   - now-playing
 confidence: high
-updated: 2026-11-11 America/Chicago
+updated: 2026-11-14 America/Chicago
 ---
 
 # Seeburg Wallbox Project
@@ -83,7 +83,7 @@ isolation before applying power.
 Now Playing remains the playback and queue system. This project is an input adapter and resolver. Its integration target is the app-host control plane, not a second independent MPD controller.
 
 The live integration endpoint is `POST /integrations/seeburg/selection` on the
-restricted Now Playing hardware gateway at `10.0.0.35:3103`. It uses the saved
+restricted Now Playing hardware gateway at `10.0.0.4:3103`. It uses the saved
 `Seeburg Playlist` order as
 the catalog. When audio is stopped or paused, it clears the live queue, adds the
 selected track, and starts playback; while audio is already playing, it appends
@@ -97,4 +97,4 @@ validates the uploaded source before replacing the running file, preserves
 `main.backup.py`, and reboots after a successful installation. `OTA_TOKEN`
 remains in the untracked device `secrets.py`.
 
-Last updated: 2026-11-11 America/Chicago
+Last updated: 2026-11-14 America/Chicago
